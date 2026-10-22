@@ -1,120 +1,291 @@
 # Five Nights at Gudo's
 
-A **Java + Swing** carinderia night-shift game with a classic FNAF-style interface: a bare white pixel-font title screen, animated television interference, an outlined CCTV floor plan, green usage bars and a chevron monitor tab. Java2D draws the rooms and HUD; real Swing controls provide the menus, camera buttons, preferences and records table. Java Sound handles WAV playback, and SQLite/JDBC stores local progress.
+A Java 17 + Swing survival-style night shift game inspired by classic FNAF presentation: CRT/VHS effects, camera feeds, power management, and a six-hour shift loop.
 
-## Run on Windows
+---
 
-Install a **JDK 17 or newer**, then double-click **`run.cmd`** (or run `.\run.cmd` in PowerShell).
+## Table of contents
 
-The included Maven wrapper downloads Maven and dependencies on the first build, so the first run requires internet. The built game runs completely offline:
+1. [What this project is](#what-this-project-is)
+2. [Current gameplay](#current-gameplay)
+3. [Controls](#controls)
+4. [Requirements](#requirements)
+5. [Run the game](#run-the-game)
+6. [Build and test](#build-and-test)
+7. [Save data and profiles](#save-data-and-profiles)
+8. [Project architecture](#project-architecture)
+9. [Assets and content pipeline](#assets-and-content-pipeline)
+10. [Troubleshooting](#troubleshooting)
+11. [License and attribution notes](#license-and-attribution-notes)
 
-```powershell
-.\mvnw.cmd clean verify
-java --enable-native-access=ALL-UNNAMED -jar target/five-nights-at-gudos.jar
-```
+---
 
-On macOS/Linux, use `sh ./mvnw clean verify`, then the same `java` command. Java 17-compatible bytecode is produced even if a newer JDK is installed.
+## What this project is
 
-## What's playable now
+Five Nights at Gudo's is a desktop game where you survive each night by managing:
 
-- Static-covered title screen with New Game, Continue and Extras. Extras contains night selection, handbook, settings, credits and shift records.
-- Mouse-controlled **cylindrical perspective** office panning, with curved/nonlinear image projection instead of a sliding flat crop.
-- Six selectable CCTV feeds using the same perspective projection, each **sweeping left/right automatically** on a camera-specific phase and period. Camera movement is independent of the mouse and continues on the shift clock even when another feed is selected.
-- Downloaded animated television static, rolling tracking bands, scanlines and a bundled VT323 pixel font. Assets work offline; their licenses and credits are included.
-- Desk light, live power usage, a six-minute 12 AM–6 AM shift, and pause/resume.
-- Power-failure and completed-shift results. Five unlockable nights with identical rules for now.
-- Automatic pause on focus loss and borderless fullscreen.
-- Persistent local profiles, progress, attempt history, text preferences and shift reports.
+- **Time** (12:00 AM to 6:00 AM over a 6-minute real-time shift)
+- **Power** (drains faster when monitor/light are active)
+- **Awareness** (switch between 6 camera feeds)
 
-**There are intentionally no enemies, attacks, fake character silhouettes or jumpscares.** Running out of power is an equipment failure, not a death. Separate room-state renders and enemy logic can be added later.
+### Important design constraints (current version)
 
-### Controls
+- There are currently **no enemy AI entities, attacks, or jumpscares**.
+- A failed run is currently a **power-out equipment failure**, not a death scene.
+- Night progression is unlocked by completed runs and stored locally.
+
+---
+
+## Current gameplay
+
+- Main menu with New Game, Continue, and Extras.
+- Extras pages for:
+  - Night select
+  - Guide
+  - Settings
+  - Credits
+  - Shift records
+- Office panning with curved panorama projection.
+- 6 camera feeds with autonomous sweep motion.
+- Monitor/light mutual exclusion (opening monitor disables light).
+- Pause/resume support.
+- Borderless fullscreen toggle.
+- Persistent local profiles, settings, and run history.
+
+### Night and power rules
+
+Core timing and drain constants are in `GameSession`:
+
+- Shift length: **360 seconds**
+- Base drain: **0.085/s**
+- Monitor extra drain: **0.22/s**
+- Light extra drain: **0.20/s**
+
+So usage is effectively:
+
+- Idle office: base drain
+- Monitor open: base + monitor
+- Light on: base + light
+- Monitor + light together: not allowed
+
+---
+
+## Controls
 
 | Control | Action |
 | --- | --- |
-| Mouse near left/right edges, A/D or arrow keys | Pan across the office |
-| Space or Tab | Raise/lower the monitor |
-| 1–6, or camera map buttons | Switch camera while the monitor is open |
-| Hold F, or hold the light button | Desk light in the office |
-| Esc | Pause/resume |
-| F11 | Borderless fullscreen |
+| Mouse near left/right edge | Pan office view |
+| A / D or Left / Right arrows | Pan office view |
+| Space or Tab | Open/close monitor |
+| 1..6 | Switch camera feed (when monitor is open) |
+| Camera buttons on map | Switch camera feed |
+| Hold **F** or hold Light button | Toggle office light |
+| Esc | Pause / resume |
+| F11 | Toggle borderless fullscreen |
 
-Finish a shift to unlock the next. New Game starts Night 1 without deleting existing records; Continue starts the next unlocked night. Replaying never resets progress. The monitor and light consume additional power, and cannot be used together. Clock, power and automatic CCTV movement stop while paused. Leaving or normally closing during a shift records an abandoned attempt. Force-killing the process cannot save an unfinished attempt. **Continue does not restore a mid-shift checkpoint.**
+---
 
-## Text files and database
+## Requirements
 
-Writable data is kept **outside the application/JAR**:
+- **JDK 17+**
+- Internet access for first Maven dependency download
+- Desktop environment (for running the UI)
+
+Maven itself is included via the wrapper (`mvnw`, `mvnw.cmd`).
+
+---
+
+## Run the game
+
+### Windows quick run
+
+Double-click `run.cmd`, or run:
+
+```powershell
+.\run.cmd
+```
+
+`run.cmd` builds with Maven wrapper and launches:
+
+```text
+java --enable-native-access=ALL-UNNAMED -jar target\five-nights-at-gudos.jar
+```
+
+### macOS / Linux
+
+```bash
+sh ./mvnw clean verify
+java --enable-native-access=ALL-UNNAMED -jar target/five-nights-at-gudos.jar
+```
+
+### Isolated save directory (manual testing)
+
+```bash
+java --enable-native-access=ALL-UNNAMED -Dgudo.dataDir=target/manual-test-data -jar target/five-nights-at-gudos.jar
+```
+
+---
+
+## Build and test
+
+### Full build + tests
+
+Windows:
+
+```powershell
+.\mvnw.cmd clean verify
+```
+
+macOS/Linux:
+
+```bash
+sh ./mvnw clean verify
+```
+
+### Packaged distributable
+
+The distributable output is:
+
+- `target/five-nights-at-gudos.jar`
+
+### Test coverage areas
+
+Existing tests cover:
+
+- Game timing/power/session behavior
+- Camera motion and panorama projection
+- SQLite persistence and idempotent writes
+- Settings and shift-log text file IO
+- Asset loading for images/audio/effects/font
+- Headless UI rendering paths
+
+Optional desktop smoke test class:
+
+- `src/test/java/com/gudos/DesktopSmoke.java`
+
+---
+
+## Save data and profiles
+
+Data is written **outside** the jar/application directory.
+
+Default locations:
 
 - Windows: `%LOCALAPPDATA%\FiveNightsAtGudos\`
 - Other platforms: `~/.five-nights-at-gudos/`
 
-| File | Actual use |
-| --- | --- |
-| `settings.txt` | UTF-8 key/value preferences, created on first launch, read at startup and atomically rewritten on Apply or F11. |
-| `shift-log.txt` | A readable UTF-8 report appended after a completed, power-failed or abandoned attempt. Save retries do not duplicate entries. |
-| `gudo.db` | SQLite tables `profiles`, `progress`, and `night_runs`; queried for Continue, night unlocking and the records screen. |
+Files:
 
-Change your player name in Settings to select/create a separate local profile. Names are case-insensitive; this is not an online account or authentication system. SQLite is authoritative for progress; the text report is not used as a substitute database. Storage operations run off Swing's event thread, SQL uses prepared statements, and attempt/progress writes are transactional.
+- `settings.txt` — UTF-8 user settings
+- `shift-log.txt` — append-only human-readable run report
+- `gudo.db` — SQLite database with progress and run history
 
-For an isolated test save location:
+### SQLite tables
 
-```powershell
-java --enable-native-access=ALL-UNNAMED "-Dgudo.dataDir=target/manual-test-data" -jar target/five-nights-at-gudos.jar
-```
+- `profiles`
+- `progress`
+- `night_runs`
 
-## Project layout
+Notes:
+
+- Profile names are case-insensitive in SQLite.
+- Run inserts are idempotent by run ID (`ON CONFLICT DO NOTHING`).
+- Progress updates are transactional and tied to completed runs.
+
+---
+
+## Project architecture
+
+### Startup flow
+
+1. `Main` configures Swing look-and-feel and opens a loading panel.
+2. Background boot loads:
+   - App paths
+   - Settings
+   - SQLite progress
+   - Assets
+3. `Application` takes over navigation, audio, update loop, and async IO.
+
+### Runtime responsibilities
+
+- `com.gudos.game` — pure gameplay/session state
+- `com.gudos.ui` — Swing/Java2D screens and HUD rendering
+- `com.gudos.assets` — scene manifest/image loading/projection helpers
+- `com.gudos.audio` — WAV playback service
+- `com.gudos.persistence` — settings/log/database storage
+
+### Repository layout
 
 ```text
 src/main/java/com/gudos/
-  Application.java         Screen navigation and asynchronous storage
-  Main.java                Swing startup
-  assets/                  Scene loading, render-state fallback, cylindrical projection
-  audio/                   Background Java Sound service
-  game/                    UI-independent shift, power, scene state, automatic camera sweep
-  persistence/             SQLite, settings.txt, shift-log.txt
-  ui/                      Custom Java2D scenes and Swing components
+  Main.java
+  Application.java
+  assets/
+  audio/
+  game/
+  persistence/
+  ui/
 src/main/resources/
-  images/office/           Original panorama, renamed consistently
-  images/cameras/          Six original camera images
-  audio/                   Eight active ambience/UI effects
-  effects/                 Downloaded animated television-static GIF
-  fonts/                   Bundled VT323 pixel font
-  licenses/                Downloaded asset attribution and full licenses
-  config/scenes.properties Scene-to-render manifest
-src/test/java/             Game, JDBC, text-file, asset and Swing render tests
-asset-sources/audio/       44 unused source WAVs, excluded from the JAR
-docs/assets/              Preserved pack README, contact sheet and mapping
+  config/scenes.properties
+  images/
+  audio/
+  effects/
+  fonts/
+  licenses/
+src/test/java/
+asset-sources/
+docs/assets/
 ```
 
-### Adding your separate state renders later
+---
 
-1. Place the new image under `src/main/resources/images/office/` or `images/cameras/`.
-2. Add a named entry in `src/main/resources/config/scenes.properties`, for example:
+## Assets and content pipeline
 
-   ```properties
-   cam03.occupied=/images/cameras/cam-03-kitchen-occupied.png
-   ```
+### Scene manifest
 
-3. Future game logic can call `session.setSceneState(Scene.CAM_03, "occupied")`. The existing renderer picks that full image up automatically. Use `"default"` to return to the clean room.
+`src/main/resources/config/scenes.properties` maps scene/state IDs to image paths.
 
-Unmapped states fall back to the default image. Missing files explicitly listed in the manifest fail startup with an error rather than silently hiding a broken asset. No enemy behavior is implemented by adding an image alone.
+Each scene must have a `.default` entry. Unknown state keys fall back to default.
 
-## Tests
+This supports future state variants like:
 
-`mvnw.cmd clean verify` exercises shift timing, pause, power failure, camera/light exclusion, autonomous camera motion, nonlinear panorama projection, SQLite transactions/idempotency/profile isolation, actual text-file reads/writes, bundled images/WAVs/GIF/font, and headless Swing rendering. Visual previews are generated under **`target/ui-preview/`**. Audio decoding is tested without requiring a speaker/mixer.
-
-An optional real-window smoke check (uses the mouse and keyboard, so run it only when the desktop is free):
-
-```powershell
-java --enable-native-access=ALL-UNNAMED "-Dgudo.dataDir=target/desktop-smoke-data" -cp "target/test-classes;target/five-nights-at-gudos.jar" com.gudos.DesktopSmoke
+```properties
+cam03.occupied=/images/cameras/cam-03-kitchen-occupied.png
 ```
 
-This uses isolated saves and captures only the game window under `target/desktop-preview/`.
+`GameSession#setSceneState(...)` provides the hook for selecting these states.
 
-The distributable is **`target/five-nights-at-gudos.jar`**; dependencies and runtime assets are bundled. The smaller version-numbered JAR is only an intermediate build artifact, not the distributable.
+### Included source assets
 
-## Asset rights
+- Runtime assets live in `src/main/resources/`.
+- Original source packs are preserved under `asset-sources/` and docs under `docs/assets/`.
 
-All supplied assets were preserved; see `docs/assets/asset-manifest.md`. The supplied FNAF audio has **no accompanying redistribution license**. The original game's phone calls, character sounds and scares are archived, not used. Confirm all third-party permissions or replace the sounds before public distribution. This is an unofficial project, not an official FNAF release.
+---
 
-New downloaded assets have documented licenses: **Television static.gif**, GravelTravel22, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), from [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Television_static.gif); and **VT323**, The VT323 Project Authors, [SIL OFL 1.1](https://github.com/google/fonts/tree/main/ofl/vt323). The original files are retained unmodified. Noise is alpha-masked/resized at runtime; the adapted noise visuals are available under CC BY-SA 4.0. Full attribution and licenses are bundled in `src/main/resources/licenses/` and the JAR. Reference screenshots were not imported as game assets, and no FNAF character art was added.
+## Troubleshooting
+
+### App fails on startup
+
+- Confirm you are launching the built jar or `run.cmd` from the repository root.
+- Confirm the save directory is writable.
+- Confirm Java 17+ is installed.
+
+### No sound
+
+- Check Settings volume.
+- Confirm your system audio device/mixer is available.
+
+### Progress not where expected
+
+- Use Settings → "COPY DATA FOLDER" to get the exact active save path.
+- If using `-Dgudo.dataDir=...`, that override location is authoritative.
+
+---
+
+## License and attribution notes
+
+- Attribution and bundled license texts are in `src/main/resources/licenses/`.
+- Additional source-asset references are in `docs/assets/asset-manifest.md`.
+- This is an unofficial fan project and not an official FNAF release.
+
+Third-party usage rights vary by asset. Verify redistribution permissions before public release, especially for archived/source audio that may not include permissive redistribution terms.
