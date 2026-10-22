@@ -1,0 +1,22 @@
+Television static.gif
+Author: GravelTravel22, 12 February 2022
+Source: https://commons.wikimedia.org/wiki/File:Television_static.gif
+Original download: https://upload.wikimedia.org/wikipedia/commons/0/02/Television_static.gif
+License: Creative Commons Attribution-ShareAlike 4.0 International
+https://creativecommons.org/licenses/by-sa/4.0/
+Full license: CC-BY-SA-4.0.txt in this directory.
+Original GIF retained unmodified in effects/television-static.gif.
+Runtime adaptation: decoded frames are alpha-masked, resized, and composited
+with scanlines and tracking bands. These adapted visual noise frames/effects
+are made available under CC BY-SA 4.0. Attribution does not imply endorsement.
+
+VT323 Regular
+Copyright 2011, The VT323 Project Authors (peter.hull@oikoi.com)
+Source: https://github.com/google/fonts/tree/main/ofl/vt323
+Download: https://raw.githubusercontent.com/google/fonts/main/ofl/vt323/VT323-Regular.ttf
+License: SIL Open Font License 1.1. See VT323-OFL.txt in this directory.
+Font file is bundled unmodified.
+
+Downloaded for this project on 22 October 2026.
+These licenses apply to these downloaded assets, not to the separately supplied
+carinderia backgrounds and FNAF audio. See docs/assets/asset-manifest.md.
