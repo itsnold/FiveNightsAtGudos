@@ -242,7 +242,14 @@ public final class Application implements Navigation {
         if (pendingRun.outcome() == Outcome.COMPLETED) audio.play(Sound.COMPLETE);
         else if (pendingRun.outcome() == Outcome.POWER_OUT) audio.play(Sound.POWER_DOWN);
         resultPanel = new ResultPanel(assets, this, pendingRun, this::savePendingRun);
-        show(resultPanel);
+        if (pendingRun.outcome() == Outcome.CAUGHT) {
+            audio.ambience(null);
+            audio.play(Sound.JUMPSCARE);
+            show(new JumpscarePanel(assets, settings.reducedEffects(), () -> {
+                show(resultPanel);
+                audio.ambience(Sound.HUM);
+            }));
+        } else show(resultPanel);
         savePendingRun();
     }
 

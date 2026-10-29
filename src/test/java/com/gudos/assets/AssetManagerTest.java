@@ -26,6 +26,19 @@ class AssetManagerTest {
         assertSame(assets.scene(Scene.CAM_03, "default"), assets.scene(Scene.CAM_03, "future-state"));
     }
 
+    @Test void everyEnemyRenderIsBundledAndDistinctFromTheCleanRoom() {
+        for (Scene scene : Scene.values()) {
+            if (scene == Scene.OFFICE) continue;
+            var occupied = assets.scene(scene, "occupied");
+            assertNotSame(assets.scene(scene, "default"), occupied);
+            assertTrue(occupied.getWidth() > 1800);
+            assertEquals(21.0 / 9, occupied.getWidth() / (double) occupied.getHeight(), 0.02);
+        }
+        for (String state : new String[]{"left-occupied", "front-occupied", "right-occupied", "jumpscare"}) {
+            assertNotSame(assets.scene(Scene.OFFICE, "default"), assets.scene(Scene.OFFICE, state), state);
+        }
+    }
+
     @Test void everyActiveWavCanBeDecodedWithoutAudioHardware() throws Exception {
         for (Sound sound : Sound.values()) {
             try (var stream = AudioSystem.getAudioInputStream(new BufferedInputStream(AssetManager.resource(sound.path())))) {

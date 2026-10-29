@@ -43,7 +43,17 @@ The other **44 WAV files** retain their original filenames under `asset-sources/
 
 The files were supplied with the project; no audio license, author attribution beyond the pack name, or redistribution grant accompanied them. Attribution here is provenance, **not permission**. The FNAF audio belongs to its respective rights holders. Verify rights or replace it before publishing. Preserve any additional source/license information you obtain here.
 
-New full-room state renders should be added to the runtime image directories and registered in `config/scenes.properties`. No enemy sprites or state images have been fabricated for this initial build.
+## Sir Gudo encounter assets (29 October 2026)
+
+Ten new images were generated using the built-in GPT Image tool, editing the existing rooms with the supplied menu portraits as Sir Gudo's character references. The seven original backgrounds and menu images remain unchanged.
+
+- Six occupied camera renders: `src/main/resources/images/cameras/cam-01-dining-occupied.png`, `cam-02-counter-occupied.png`, `cam-03-kitchen-occupied.png`, `cam-04-stockroom-occupied.png`, `cam-05-corridor-occupied.png`, `cam-06-alley-occupied.png`.
+- Three office renders: `src/main/resources/images/office/office-left-occupied.png`, `office-front-occupied.png`, `office-right-occupied.png`.
+- Jumpscare still: `src/main/resources/images/entities/sir-gudo-jumpscare.png`.
+
+The complete prompt set is saved in `docs/assets/sir-gudo-prompts.md`. The flashlight fade and jumpscare lunge/shake/blur are runtime Java2D effects. All state assets are bundled and registered in `config/scenes.properties`.
+
+Four original procedural mono PCM sounds were also added under `src/main/resources/audio/effects/`: `gudo-step.wav`, `gudo-warning.wav`, `gudo-retreat.wav`, and `gudo-jumpscare.wav`. Their reproducible source is `tools/generate-encounter-audio.ps1`. The archived third-party character/scare WAVs remain unused.
 
 ## Downloaded effects and font (22 October 2026)
 

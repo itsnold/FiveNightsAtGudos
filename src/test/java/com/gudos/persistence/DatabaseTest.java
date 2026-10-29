@@ -9,6 +9,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.sql.DriverManager;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -80,5 +81,43 @@ class DatabaseTest {
         Progress progress = database.loadProgress("Player");
         assertEquals(5, progress.nextNight());
         assertFalse(progress.unlocked(6));
+    }
+
+    @Test void migratesLegacyRunsAndPreservesProgressWhenRecordingCaughtOutcome() throws Exception {
+        Path file = directory.resolve("legacy.db");
+        Database legacy = new Database(file);
+        // Reproduce the previous release's constrained table and schema version.
+        try (var connection = DriverManager.getConnection("jdbc:sqlite:" + file.toAbsolutePath());
+             var sql = connection.createStatement()) {
+            sql.execute("DROP TABLE night_runs");
+            sql.execute("""
+                    CREATE TABLE night_runs (
+                        id TEXT PRIMARY KEY,
+                        profile_id INTEGER NOT NULL REFERENCES profiles(id),
+                        night INTEGER NOT NULL CHECK(night BETWEEN 1 AND 5),
+                        elapsed_seconds REAL NOT NULL CHECK(elapsed_seconds >= 0),
+                        power_remaining REAL NOT NULL CHECK(power_remaining BETWEEN 0 AND 100),
+                        outcome TEXT NOT NULL CHECK(outcome IN ('COMPLETED','POWER_OUT','ABANDONED')),
+                        started_at TEXT NOT NULL,
+                        ended_at TEXT NOT NULL
+                    )
+                    """);
+            sql.execute("CREATE INDEX runs_by_profile ON night_runs(profile_id, ended_at DESC)");
+            sql.execute("PRAGMA user_version=1");
+        }
+        RunRecord old = completed(1);
+        legacy.saveRun("Veteran", old);
+        Database upgraded = new Database(file);
+        assertEquals(old, upgraded.loadRuns("Veteran").get(0));
+        GameSession caught = new GameSession(2);
+        caught.update(1000);
+        Progress progress = upgraded.saveRun("Veteran", caught.result());
+        assertEquals(Outcome.CAUGHT, caught.result().outcome());
+        assertEquals(2, progress.totalRuns());
+        assertEquals(1, progress.completedRuns());
+        assertEquals(2, progress.nextNight());
+        Database reopened = new Database(file);
+        assertEquals(2, reopened.loadRuns("Veteran").size());
+        assertTrue(reopened.loadRuns("Veteran").contains(caught.result()));
     }
 }

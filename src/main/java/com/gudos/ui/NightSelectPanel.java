@@ -27,6 +27,6 @@ public final class NightSelectPanel extends BackdropPanel {
             String status = night <= progress.highestCompleted() ? "* Cleared" : !progress.unlocked(night) ? "Locked" : "";
             Theme.text(g, status, 478, 265 + (night - 1) * 68, Theme.pixel(28), progress.unlocked(night) ? Color.WHITE : Color.GRAY);
         }
-        Theme.text(g, "No enemies yet. All five nights use the same power rules.", 170, 630, Theme.pixel(25), Theme.MUTED);
+        Theme.text(g, "Sir Gudo moves faster each night. Face him and hold F to survive.", 170, 630, Theme.pixel(25), Theme.MUTED);
     }
 }

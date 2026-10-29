@@ -7,40 +7,49 @@ import static org.junit.jupiter.api.Assertions.*;
 class GameSessionTest {
     @Test void ordinaryShiftReachesMorningAndKeepsPower() {
         GameSession game = new GameSession(1);
-        game.update(1000);
+        while (!game.finished()) {
+            game.setOfficePan(game.gudo().approach().pan());
+            game.setLight(game.gudo().atOffice());
+            game.update(0.1);
+        }
         assertTrue(game.finished());
         assertEquals(Outcome.COMPLETED, game.result().outcome());
         assertEquals(360, game.elapsed(), 0.0001);
-        assertEquals(69.4, game.power(), 0.0001);
+        assertTrue(game.power() > 60 && game.power() < 69.4);
+        assertTrue(game.gudo().repelled() >= 3);
         assertEquals("6 AM", game.clockLabel());
         assertEquals("06:00 AM", game.preciseClock());
     }
 
     @Test void monitorCanExhaustThePowerBeforeMorning() {
-        GameSession game = new GameSession(1);
-        game.toggleMonitor();
-        game.update(400);
+        GameSession game = new GameSession(1, 1000);
+        while (!game.finished()) {
+            if (game.monitorOpen() == game.gudo().atOffice()) game.toggleMonitor();
+            game.setOfficePan(game.gudo().approach().pan());
+            game.setLight(game.gudo().atOffice());
+            game.update(0.1);
+        }
         assertEquals(Outcome.POWER_OUT, game.result().outcome());
         assertEquals(0, game.power(), 0.0001);
-        assertTrue(game.elapsed() < 360);
+        assertTrue(game.elapsed() > 300 && game.elapsed() < 400);
         assertFalse(game.monitorOpen());
-        assertEquals(100 / (GameSession.BASE_DRAIN + GameSession.MONITOR_DRAIN), game.elapsed(), 0.0001);
     }
 
     @Test void pausingStopsBothClockAndDrain() {
         GameSession game = new GameSession(2);
-        game.update(60);
+        game.update(8);
         game.setLight(true);
         game.pause();
         double power = game.power();
         game.update(500);
-        assertEquals(60, game.elapsed(), 0.0001);
+        assertEquals(8, game.elapsed(), 0.0001);
         assertEquals(power, game.power(), 0.0001);
         assertFalse(game.lightOn());
         assertFalse(game.finished());
         game.resume();
-        game.update(60);
-        assertEquals("2 AM", game.clockLabel());
+        game.update(8);
+        assertEquals(16, game.elapsed(), 0.0001);
+        assertEquals(Scene.CAM_04, game.gudo().location());
     }
 
     @Test void lightAndMonitorAreMutuallyExclusive() {

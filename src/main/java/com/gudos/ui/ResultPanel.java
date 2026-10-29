@@ -55,12 +55,13 @@ public final class ResultPanel extends BackdropPanel {
         backdrop(g);
         boolean completed = run.outcome() == Outcome.COMPLETED;
         Theme.tracked(g, "NIGHT %02d  /  %s".formatted(run.night(), run.outcome().label().toUpperCase(java.util.Locale.ROOT)), 452, 151, 12, completed ? Theme.GREEN : Theme.AMBER);
-        String title = completed ? "6 AM" : run.outcome() == Outcome.POWER_OUT ? "POWER FAILURE" : "OFF THE CLOCK";
+        String title = completed ? "6 AM" : run.outcome() == Outcome.CAUGHT ? "GUDO FOUND YOU" : run.outcome() == Outcome.POWER_OUT ? "POWER FAILURE" : "OFF THE CLOCK";
         g.setFont(Theme.heading(completed ? 112 : 64));
         int titleX = (WIDTH - g.getFontMetrics().stringWidth(title)) / 2;
         Theme.text(g, title, titleX, 281, Theme.heading(completed ? 112 : 64), Theme.PAPER);
         String subtitle = completed ? "The morning shift can take it from here."
-                : run.outcome() == Outcome.POWER_OUT ? "The building ran out of power. No enemies. Just a long night."
+                : run.outcome() == Outcome.CAUGHT ? "Face his approach and hold F until he disappears. Don't look away."
+                : run.outcome() == Outcome.POWER_OUT ? "The building ran out of power. Use the light only when you need it."
                 : "Your attempt is recorded. The next night is not unlocked.";
         g.setFont(Theme.sans(18));
         Theme.text(g, subtitle, (WIDTH - g.getFontMetrics().stringWidth(subtitle)) / 2, 324, Theme.sans(18), Theme.MUTED);

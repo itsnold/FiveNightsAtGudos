@@ -2,6 +2,7 @@ package com.gudos.ui;
 
 import com.gudos.assets.AssetManager;
 import com.gudos.game.GameSession;
+import com.gudos.game.Scene;
 import com.gudos.persistence.AppPaths;
 import com.gudos.persistence.Progress;
 import com.gudos.persistence.Settings;
@@ -59,8 +60,8 @@ class UiRenderTest {
                 render(new NightSelectPanel(assets, NAVIGATION, progress), output.resolve("nights.png"), 1280, 720);
                 game.pause();
                 render(new PausePanel(assets, NAVIGATION, game), output.resolve("pause.png"), 1280, 720);
-                GameSession completed = new GameSession(1);
-                completed.update(360);
+                GameSession completed = new GameSession(1, 2);
+                completed.update(2);
                 ResultPanel result = new ResultPanel(assets, NAVIGATION, completed.result(), () -> { });
                 result.saved();
                 render(result, output.resolve("result.png"), 1280, 720);
@@ -88,6 +89,78 @@ class UiRenderTest {
             assertFalse(game.monitorOpen());
             assertFalse(camera.isVisible());
         });
+    }
+
+    @Test void encounterRendersOccupiedFeedsOfficeFadingAndJumpscare() throws Exception {
+        Path output = Path.of("target", "ui-preview");
+        Files.createDirectories(output);
+        SwingUtilities.invokeAndWait(() -> {
+            try {
+                GameSession game = new GameSession(1);
+                GamePanel view = new GamePanel(game, assets, () -> Settings.DEFAULT, sound -> { }, () -> { });
+                view.tick(3);
+                game.toggleMonitor();
+                for (int camera = 1; camera <= 6; camera++) {
+                    game.setSceneState(Scene.camera(camera), "occupied");
+                    game.selectCamera(camera);
+                    view.tick(0.3);
+                    render(view, output.resolve("occupied-camera-%02d.png".formatted(camera)), 1280, 720);
+                    game.setSceneState(Scene.camera(camera), "default");
+                }
+                game.toggleMonitor();
+                game.update(51);
+                action(view, "left-a");
+                view.tick(1);
+                action(view, "left-a-off");
+                render(view, output.resolve("gudo-office-left.png"), 1280, 720);
+                game.setLight(true);
+                game.update(0.8);
+                render(view, output.resolve("gudo-half-faded.png"), 1280, 720);
+                game.update(0.8);
+                game.setLight(false);
+                view.tick(0.1);
+                render(view, output.resolve("gudo-repelled.png"), 1280, 720);
+                for (String side : new String[]{"right", "front"}) {
+                    for (int i = 0; i < 3000 && !game.gudo().atOffice(); i++) game.update(0.05);
+                    assertTrue(game.gudo().atOffice());
+                    if (side.equals("right")) {
+                        action(view, "right-d");
+                        view.tick(2);
+                        action(view, "right-d-off");
+                    } else {
+                        // Ease toward the center from the far right.
+                        action(view, "left-a");
+                        view.tick(0.7);
+                        action(view, "left-a-off");
+                    }
+                    render(view, output.resolve("gudo-office-" + side + ".png"), 1280, 720);
+                    game.setOfficePan(game.gudo().approach().pan());
+                    game.setLight(true);
+                    game.update(game.gudo().flashSeconds());
+                    game.setLight(false);
+                }
+                int[] callbacks = {0};
+                JumpscarePanel scare = new JumpscarePanel(assets, false, () -> callbacks[0]++);
+                scare.tick(0.28);
+                render(scare, output.resolve("gudo-jumpscare.png"), 1280, 720);
+                scare.tick(0.11);
+                render(scare, output.resolve("gudo-jumpscare-shake.png"), 1280, 720);
+                scare.tick(JumpscarePanel.DURATION);
+                scare.tick(JumpscarePanel.DURATION);
+                assertEquals(1, callbacks[0]);
+                JumpscarePanel reduced = new JumpscarePanel(assets, true, () -> { });
+                reduced.tick(0.3);
+                render(reduced, output.resolve("gudo-jumpscare-reduced.png"), 960, 600);
+                GameSession caught = new GameSession(1);
+                caught.update(1000);
+                ResultPanel result = new ResultPanel(assets, NAVIGATION, caught.result(), () -> { });
+                result.saved();
+                render(result, output.resolve("gudo-caught-result.png"), 1280, 720);
+            } catch (Exception error) { throw new RuntimeException(error); }
+        });
+        assertTrue(Files.size(output.resolve("gudo-half-faded.png")) > 100_000);
+        assertFalse(java.util.Arrays.equals(Files.readAllBytes(output.resolve("gudo-jumpscare.png")),
+                Files.readAllBytes(output.resolve("gudo-jumpscare-shake.png"))));
     }
 
     @Test void keyboardActionsDebounceMonitorAndControlLightAndOfficeYaw() throws Exception {

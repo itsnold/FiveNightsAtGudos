@@ -1,7 +1,7 @@
 package com.gudos.game;
 
 public enum Outcome {
-    COMPLETED("Completed"), POWER_OUT("Power failure"), ABANDONED("Left shift");
+    COMPLETED("Completed"), POWER_OUT("Power failure"), ABANDONED("Left shift"), CAUGHT("Caught by Sir Gudo");
 
     private final String label;
 

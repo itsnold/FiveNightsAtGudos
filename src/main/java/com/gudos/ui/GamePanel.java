@@ -23,6 +23,7 @@ public final class GamePanel extends ScenePanel {
     private final GameSession session;
     private final AssetManager assets;
     private final PanoramaRenderer officeProjection = new PanoramaRenderer();
+    private final PanoramaRenderer occupiedProjection = new PanoramaRenderer();
     private final PanoramaRenderer cameraProjection = new PanoramaRenderer();
     private final Supplier<Settings> settings;
     private final Consumer<Sound> sound;
@@ -41,6 +42,9 @@ public final class GamePanel extends ScenePanel {
     private double targetPan = 0.5;
     private double pan = 0.5;
     private double transition;
+    private Scene lastGudoLocation;
+    private int lastRepelled;
+    private double retreatNotice;
 
     public GamePanel(GameSession session, AssetManager assets, Supplier<Settings> settings,
                      Consumer<Sound> sound, Runnable pause) {
@@ -53,7 +57,7 @@ public final class GamePanel extends ScenePanel {
         monitorButton = place(button("OPEN MONITOR    [SPACE]", GameButton.Style.MONITOR, this::toggleMonitor), 335, 647, 650, 55);
         monitorButton.setToolTipText("Raise/lower monitor [Space / Tab]");
         lightButton = place(button("HOLD LIGHT  [F]", GameButton.Style.LIGHT, () -> { }), 21, 326, 74, 127);
-        lightButton.setToolTipText("Hold this button or F to use the office light.");
+        lightButton.setToolTipText("Face Sir Gudo's doorway and hold F until he fades away.");
         lightButton.addMouseListener(new MouseAdapter() {
             @Override public void mousePressed(MouseEvent event) { if (SwingUtilities.isLeftMouseButton(event)) { mouseLight = true; updateLight(); } }
             @Override public void mouseReleased(MouseEvent event) { mouseLight = false; updateLight(); }
@@ -146,7 +150,7 @@ public final class GamePanel extends ScenePanel {
     @Override public void tick(double seconds) {
         super.tick(seconds);
         transition = Math.max(0, transition - seconds);
-        if (!session.monitorOpen() && !session.paused()) {
+        if (!session.monitorOpen() && !session.paused() && !session.finished()) {
             double direction = (rightHeld ? 1 : 0) - (leftHeld ? 1 : 0);
             if (direction == 0 && pointerInside && pointer.getY() >= 0 && pointer.getY() < 630) {
                 if (pointer.getX() < 340) direction = -(340 - pointer.getX()) / 340;
@@ -154,6 +158,22 @@ public final class GamePanel extends ScenePanel {
             }
             targetPan = Math.max(0, Math.min(1, targetPan + direction * seconds * 0.72));
             pan += (targetPan - pan) * (1 - Math.exp(-seconds * 9));
+            session.setOfficePan(pan);
+        }
+        if (!session.paused() && !session.finished()) {
+            retreatNotice = Math.max(0, retreatNotice - seconds);
+            Scene location = session.gudo().location();
+            if (location != lastGudoLocation) {
+                if (session.gudo().atOffice()) sound.accept(Sound.GUDO_WARNING);
+                else if (location != null) sound.accept(Sound.GUDO_STEP);
+                if (session.monitorOpen()) transition = 0.20;
+                lastGudoLocation = location;
+            }
+            if (session.gudo().repelled() != lastRepelled) {
+                lastRepelled = session.gudo().repelled();
+                retreatNotice = 2;
+                sound.accept(Sound.GUDO_RETREAT);
+            }
         }
         syncControls();
     }
@@ -165,7 +185,15 @@ public final class GamePanel extends ScenePanel {
     }
 
     private void renderOffice(Graphics2D g) {
-        g.drawImage(officeProjection.render(assets.scene(Scene.OFFICE, session.sceneState(Scene.OFFICE)), pan), 0, 0, WIDTH, HEIGHT, null);
+        double fade = session.gudo().fadeProgress();
+        if (session.gudo().atOffice() && fade > 0) {
+            g.drawImage(officeProjection.render(assets.scene(Scene.OFFICE, "default"), pan), 0, 0, WIDTH, HEIGHT, null);
+            g.setComposite(AlphaComposite.SrcOver.derive((float) (1 - fade)));
+            g.drawImage(occupiedProjection.render(assets.scene(Scene.OFFICE, session.sceneState(Scene.OFFICE)), pan), 0, 0, WIDTH, HEIGHT, null);
+            g.setComposite(AlphaComposite.SrcOver);
+        } else {
+            g.drawImage(officeProjection.render(assets.scene(Scene.OFFICE, session.sceneState(Scene.OFFICE)), pan), 0, 0, WIDTH, HEIGHT, null);
+        }
         g.setColor(new Color(0, 0, 0, session.lightOn() ? 2 : 40));
         g.fillRect(0, 0, WIDTH, HEIGHT);
         if (session.lightOn()) {
@@ -236,6 +264,25 @@ public final class GamePanel extends ScenePanel {
     }
 
     private void renderHud(Graphics2D g) {
+        if (session.gudo().atOffice() && !session.finished()) {
+            String warning = "FOOTSTEPS: " + session.gudo().approach().label();
+            Theme.text(g, warning, 28, 52, Theme.pixel(29), Theme.AMBER);
+            String instruction = session.monitorOpen() ? "LOWER MONITOR. FACE THE DOOR. HOLD F."
+                    : session.lightOn() && session.gudo().approach().faces(pan) ? "KEEP THE LIGHT ON HIM..."
+                    : "FACE THE DOOR. HOLD F UNTIL HE FADES.";
+            Theme.text(g, instruction, 28, 83, Theme.pixel(25), Color.WHITE);
+            if (!session.monitorOpen() && session.gudo().fadeProgress() > 0) {
+                g.setColor(new Color(0, 0, 0, 150));
+                g.fillRect(480, 597, 320, 7);
+                g.setColor(Theme.PAPER);
+                g.fillRect(480, 597, (int) (320 * session.gudo().fadeProgress()), 7);
+            }
+        } else if (retreatNotice > 0) {
+            Theme.text(g, "HE'S GONE. SAVE YOUR POWER.", 28, 52, Theme.pixel(27), Theme.GREEN);
+        } else if (session.elapsed() < 18) {
+            Theme.text(g, "TRACK HIM ON CCTV. HOLD F AT THE OFFICE.", 28, 52, Theme.pixel(25), Color.WHITE);
+            Theme.text(g, "A / D TO FACE THE LEFT, CENTER OR RIGHT DOOR.", 28, 80, Theme.pixel(23), Theme.MUTED);
+        }
         g.setFont(Theme.pixel(75));
         Theme.text(g, session.clockLabel(), WIDTH - 28 - g.getFontMetrics().stringWidth(session.clockLabel()), 69, Theme.pixel(75), Color.WHITE);
         String night = "Night " + session.night();

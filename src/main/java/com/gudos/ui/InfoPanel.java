@@ -25,7 +25,7 @@ public final class InfoPanel extends BackdropPanel {
                 {"MOUSE EDGES / A · D", "Look left and right across the office"},
                 {"SPACE / TAB", "Raise or lower the camera monitor"},
                 {"1 — 6", "Select a camera while the monitor is open"},
-                {"HOLD F", "Use the desk light (office only)"},
+                {"HOLD F", "Face his doorway; hold until he fades"},
                 {"ESC", "Pause or resume the shift"},
                 {"F11", "Toggle borderless fullscreen"}
         };
@@ -37,11 +37,11 @@ public final class InfoPanel extends BackdropPanel {
         }
         g.setColor(Theme.LINE);
         g.drawLine(676, 241, 676, 593);
-        String[] headings = {"01  MAKE IT TO MORNING", "02  WATCH YOUR POWER", "03  KNOW THIS BUILD"};
+        String[] headings = {"01  FOLLOW HIS ROUTE", "02  HOLD THE LIGHT", "03  SURVIVE UNTIL 6 AM"};
         String[] paragraphs = {
-                "A shift lasts six real minutes, from 12 AM to 6 AM. Finishing saves your record and unlocks the next night.",
-                "The building uses a little power on its own. The monitor and desk light draw more. At 0%, the shift ends as a power failure.",
-                "There are no enemies, attacks or jumpscares yet. All five nights currently share the same environment and power rules."
+                "Sir Gudo approaches via 04 > 03 > 02 (left), 06 > 05 (right), or 01 (center). Watch CCTV to see where he is heading.",
+                "When footsteps reach the office, lower the monitor. Face his doorway with A/D, then hold F until he disappears. Looking away lets him recover.",
+                "Last six minutes. Save power between attacks. Later nights give less time to react. A completed shift unlocks the next night."
         };
         for (int index = 0; index < headings.length; index++) {
             int y = 250 + index * 119;
@@ -63,6 +63,6 @@ public final class InfoPanel extends BackdropPanel {
         Theme.paragraph(g, "VT323 / The VT323 Project Authors\nSIL Open Font License 1.1\nFull credits and licenses bundled in licenses/.", 678, 434, 510, 25, Theme.pixel(23), Theme.MUTED);
         Theme.text(g, "Audio", 678, 539, Theme.pixel(31), Color.WHITE);
         Theme.paragraph(g, "Supplied Five Nights at Freddy's sound pack.\nVerify reuse permissions before distribution.", 678, 574, 510, 25, Theme.pixel(23), Theme.MUTED);
-        Theme.text(g, "Unofficial project. No enemies or jumpscares in this build.", 82, 655, Theme.pixel(24), Theme.MUTED);
+        Theme.text(g, "Sir Gudo states: GPT Image edits of supplied art. Encounter sounds: original synthesized audio.", 82, 655, Theme.pixel(22), Theme.MUTED);
     }
 }

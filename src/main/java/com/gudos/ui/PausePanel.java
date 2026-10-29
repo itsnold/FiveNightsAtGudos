@@ -20,7 +20,7 @@ public final class PausePanel extends BackdropPanel {
         backdrop(g);
         Theme.text(g, "Paused", 530, 265, Theme.pixel(76), Color.WHITE);
         Theme.text(g, "Night %d  /  %s".formatted(session.night(), session.preciseClock()), 510, 310, Theme.pixel(28), Color.WHITE);
-        Theme.text(g, "Clock and power are stopped.", 503, 535, Theme.pixel(25), Theme.MUTED);
+        Theme.text(g, "Clock, power and Sir Gudo are stopped.", 451, 535, Theme.pixel(25), Theme.MUTED);
         Theme.text(g, "Leaving records an unfinished attempt.", 451, 572, Theme.pixel(24), Theme.MUTED);
     }
 }

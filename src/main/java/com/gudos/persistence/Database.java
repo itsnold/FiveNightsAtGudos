@@ -22,8 +22,10 @@ public final class Database {
         url = "jdbc:sqlite:" + file.toAbsolutePath();
         try (Connection connection = connect(); Statement sql = connection.createStatement()) {
             sql.execute("PRAGMA journal_mode=WAL");
+            int schemaVersion;
             try (ResultSet version = sql.executeQuery("PRAGMA user_version")) {
-                if (version.next() && version.getInt(1) > 1) throw new SQLException("This database belongs to a newer game version.");
+                schemaVersion = version.next() ? version.getInt(1) : 0;
+                if (schemaVersion > 2) throw new SQLException("This database belongs to a newer game version.");
             }
             sql.execute("""
                     CREATE TABLE IF NOT EXISTS profiles (
@@ -40,21 +42,40 @@ public final class Database {
                         updated_at TEXT NOT NULL
                     )
                     """);
-            sql.execute("""
-                    CREATE TABLE IF NOT EXISTS night_runs (
+            sql.execute(runsTable("night_runs"));
+            if (schemaVersion == 1) {
+                connection.setAutoCommit(false);
+                try {
+                    sql.execute(runsTable("night_runs_v2"));
+                    sql.execute("INSERT INTO night_runs_v2 SELECT * FROM night_runs");
+                    sql.execute("DROP TABLE night_runs");
+                    sql.execute("ALTER TABLE night_runs_v2 RENAME TO night_runs");
+                    sql.execute("CREATE INDEX runs_by_profile ON night_runs(profile_id, ended_at DESC)");
+                    sql.execute("PRAGMA user_version=2");
+                    connection.commit();
+                } catch (SQLException error) {
+                    connection.rollback();
+                    throw error;
+                } finally { connection.setAutoCommit(true); }
+            }
+            sql.execute("CREATE INDEX IF NOT EXISTS runs_by_profile ON night_runs(profile_id, ended_at DESC)");
+            sql.execute("PRAGMA user_version=2");
+        }
+    }
+
+    private static String runsTable(String table) {
+        return """
+                    CREATE TABLE IF NOT EXISTS %s (
                         id TEXT PRIMARY KEY,
                         profile_id INTEGER NOT NULL REFERENCES profiles(id),
                         night INTEGER NOT NULL CHECK(night BETWEEN 1 AND 5),
                         elapsed_seconds REAL NOT NULL CHECK(elapsed_seconds >= 0),
                         power_remaining REAL NOT NULL CHECK(power_remaining BETWEEN 0 AND 100),
-                        outcome TEXT NOT NULL CHECK(outcome IN ('COMPLETED','POWER_OUT','ABANDONED')),
+                        outcome TEXT NOT NULL CHECK(outcome IN ('COMPLETED','POWER_OUT','ABANDONED','CAUGHT')),
                         started_at TEXT NOT NULL,
                         ended_at TEXT NOT NULL
                     )
-                    """);
-            sql.execute("CREATE INDEX IF NOT EXISTS runs_by_profile ON night_runs(profile_id, ended_at DESC)");
-            sql.execute("PRAGMA user_version=1");
-        }
+                    """.formatted(table);
     }
 
     private Connection connect() throws SQLException {
