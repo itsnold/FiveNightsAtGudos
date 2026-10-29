@@ -5,6 +5,7 @@ import com.gudos.game.Scene;
 
 import java.awt.*;
 
+/** Common dim office background, page headings, and back navigation for secondary screens. */
 public abstract class BackdropPanel extends ScenePanel {
     protected final AssetManager assets;
 
@@ -25,6 +26,7 @@ public abstract class BackdropPanel extends ScenePanel {
         Theme.text(g, "v 0.1", 20, 706, Theme.pixel(21), Theme.MUTED);
     }
 
+    // Both the Back button and Escape request the menu through the same navigation interface.
     protected void backButton(Navigation navigation) {
         place(new GameButton("← BACK", GameButton.Style.QUIET, navigation::menu), 72, 38, 112, 38);
         bind("ESCAPE", "back", navigation::menu);

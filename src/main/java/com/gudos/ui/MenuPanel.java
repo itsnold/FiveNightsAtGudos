@@ -26,6 +26,7 @@ public final class MenuPanel extends ScenePanel {
         return ThreadLocalRandom.current().nextDouble(3.5, 10.0);
     }
 
+    // Update only the title's flicker animation; there is no active game simulation on this screen.
     @Override public void tick(double seconds) {
         super.tick(seconds);
         if (settings.reducedEffects()) {
@@ -54,6 +55,7 @@ public final class MenuPanel extends ScenePanel {
         this.assets = assets;
         this.settings = settings;
         this.progress = progress;
+        // New Game starts Night 1 without erasing history; Continue starts the next unlocked night.
         entry("New Game", 385, () -> navigation.startNight(1));
         GameButton continueButton = entry("Continue", 457, () -> navigation.startNight(progress.nextNight()));
         continueButton.setEnabled(progress.totalRuns() > 0);
@@ -67,6 +69,7 @@ public final class MenuPanel extends ScenePanel {
         bind("pressed ENTER", "choose", () -> entries.get(selected).doClick());
     }
 
+    // Share selection between mouse hover and keyboard navigation.
     private GameButton entry(String text, int y, Runnable action) {
         int index = entries.size();
         GameButton button = new GameButton(text, GameButton.Style.TEXT, action);
@@ -78,6 +81,7 @@ public final class MenuPanel extends ScenePanel {
         return button;
     }
 
+    // Wrap around the menu and skip disabled entries such as Continue before the first attempt.
     private void move(int direction) {
         int index = selected;
         do { index = Math.floorMod(index + direction, entries.size()); } while (!entries.get(index).isEnabled());

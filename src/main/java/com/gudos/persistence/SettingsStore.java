@@ -16,6 +16,7 @@ public final class SettingsStore {
 
     public SettingsStore(Path file) { this.file = file; }
 
+    // First launch creates defaults. Later launches parse the key/value file and normalize its values.
     public Settings load() throws IOException {
         if (!Files.exists(file)) {
             save(Settings.DEFAULT);
@@ -34,6 +35,7 @@ public final class SettingsStore {
                 booleanValue(values, "reducedEffects", false), booleanValue(values, "fullscreen", false));
     }
 
+    // Accept explicit true/false values and use the supplied fallback for unrecognized text.
     private boolean booleanValue(Properties values, String key, boolean fallback) {
         String value = values.getProperty(key, "").strip();
         if (value.equalsIgnoreCase("true")) return true;
@@ -41,6 +43,7 @@ public final class SettingsStore {
         return fallback;
     }
 
+    // Save a complete replacement rather than appending another copy of the preferences.
     public void save(Settings settings) throws IOException {
         Path parent = file.toAbsolutePath().getParent();
         Files.createDirectories(parent);
@@ -49,6 +52,8 @@ public final class SettingsStore {
         values.setProperty("volume", Integer.toString(settings.volume()));
         values.setProperty("reducedEffects", Boolean.toString(settings.reducedEffects()));
         values.setProperty("fullscreen", Boolean.toString(settings.fullscreen()));
+        // Write in the same folder, then swap files atomically where the filesystem supports it.
+        // The fallback replacement is used only when atomic moves are unavailable.
         Path temporary = Files.createTempFile(parent, "settings-", ".tmp");
         try {
             try (Writer writer = Files.newBufferedWriter(temporary, StandardCharsets.UTF_8)) {

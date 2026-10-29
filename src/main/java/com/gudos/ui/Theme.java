@@ -5,6 +5,7 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 
+/** Shared drawing helpers, colors, and bundled font used to keep all screens visually consistent. */
 public final class Theme {
     public static final Color BACKGROUND = Color.BLACK;
     public static final Color PAPER = Color.WHITE;
@@ -17,6 +18,7 @@ public final class Theme {
 
     private Theme() { }
 
+    // Load from the classpath so packaged/offline runs use the same font as development runs.
     private static Font loadPixelFont() {
         try (InputStream stream = Theme.class.getResourceAsStream("/fonts/VT323-Regular.ttf")) {
             if (stream == null) throw new IllegalStateException("Missing bundled VT323 font");
@@ -31,6 +33,7 @@ public final class Theme {
     public static Font heading(int size) { return pixel(size); }
     public static Font mono(int size) { return PIXEL.deriveFont(size * 1.25f); }
 
+    // Keep pixel text sharp while using bilinear sampling for scaled room images.
     public static void quality(Graphics2D g) {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
@@ -39,6 +42,7 @@ public final class Theme {
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
     }
 
+    // Draw a small black shadow behind opaque light text to improve readability over backgrounds.
     public static void text(Graphics2D g, String text, int x, int y, Font font, Color color) {
         g.setFont(font);
         if (color.getAlpha() > 200 && !color.equals(BACKGROUND)) {
@@ -49,6 +53,7 @@ public final class Theme {
         g.drawString(text, x, y);
     }
 
+    // Increase character spacing for small section labels.
     public static void tracked(Graphics2D g, String text, int x, int y, int size, Color color) {
         g.setFont(mono(size));
         g.setColor(color);
@@ -60,6 +65,7 @@ public final class Theme {
         }
     }
 
+    // Java2D drawString does not wrap text, so break paragraphs into lines using font measurements.
     public static void paragraph(Graphics2D g, String text, int x, int y, int width, int lineHeight, Font font, Color color) {
         g.setFont(font);
         g.setColor(color);
@@ -79,6 +85,7 @@ public final class Theme {
         }
     }
 
+    // Shorten text to fit its allocated width while indicating that characters were omitted.
     public static String ellipsize(Graphics2D g, String text, int width) {
         if (g.getFontMetrics().stringWidth(text) <= width) return text;
         int length = text.length();
@@ -86,6 +93,7 @@ public final class Theme {
         return text.substring(0, length) + "…";
     }
 
+    // Fill a rectangle completely, cropping overflow; pan chooses which horizontal part remains visible.
     public static void cover(Graphics2D g, BufferedImage image, int x, int y, int w, int h, double pan) {
         double scale = Math.max((double) w / image.getWidth(), (double) h / image.getHeight());
         int width = (int) Math.ceil(image.getWidth() * scale);
@@ -96,6 +104,7 @@ public final class Theme {
         g.setClip(clip);
     }
 
+    // Fit the entire image inside a rectangle without cropping, preserving its aspect ratio.
     public static void contain(Graphics2D g, BufferedImage image, int x, int y, int w, int h) {
         double scale = Math.min((double) w / image.getWidth(), (double) h / image.getHeight());
         int width = (int) Math.round(image.getWidth() * scale);
@@ -103,12 +112,14 @@ public final class Theme {
         g.drawImage(image, x + (w - width) / 2, y + (h - height) / 2, width, height, null);
     }
 
+    // A radial gradient darkens the screen edges without modifying the source image.
     public static void vignette(Graphics2D g, int strength) {
         g.setPaint(new RadialGradientPaint(new Point2D.Float(640, 340), 810,
                 new float[]{0, 0.5f, 1}, new Color[]{new Color(0, 0, 0, 0), new Color(0, 0, 0, 15), new Color(0, 0, 0, strength)}));
         g.fillRect(0, 0, 1280, 720);
     }
 
+    // Small decorative drawing helpers used by screens; they do not manage Swing components.
     public static void cornerFrame(Graphics2D g, int x, int y, int w, int h, Color color) {
         g.setColor(color);
         g.setStroke(new BasicStroke(1));

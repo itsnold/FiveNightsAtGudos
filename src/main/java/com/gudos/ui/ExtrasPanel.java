@@ -4,6 +4,7 @@ import com.gudos.assets.AssetManager;
 
 import java.awt.*;
 
+/** Links the Extras menu's labels to the corresponding Navigation.Page requests. */
 public final class ExtrasPanel extends BackdropPanel {
     public ExtrasPanel(AssetManager assets, Navigation navigation) {
         super(assets);

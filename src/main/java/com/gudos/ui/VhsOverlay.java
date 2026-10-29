@@ -9,7 +9,9 @@ public final class VhsOverlay {
     private VhsOverlay() { }
 
     public static void paint(Graphics2D g, AssetManager assets, double time, float opacity, boolean reducedEffects) {
+        // This is a visual layer only; disabling it does not change gameplay or enemy timing.
         if (reducedEffects || opacity <= 0) return;
+        // Restore the incoming graphics settings after the noise so later painting is unaffected.
         Composite composite = g.getComposite();
         Object interpolation = g.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);

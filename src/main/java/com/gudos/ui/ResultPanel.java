@@ -6,6 +6,7 @@ import com.gudos.game.RunRecord;
 
 import java.awt.*;
 
+/** Displays the final RunRecord and reflects the asynchronous save's pending/success/failure status. */
 public final class ResultPanel extends BackdropPanel {
     private final RunRecord run;
     private final GameButton next;
@@ -27,6 +28,7 @@ public final class ResultPanel extends BackdropPanel {
         retry.setVisible(false);
     }
 
+    // Block navigation to another shift until storage finishes, preserving this pending result.
     public void saving() {
         saveFailed = false;
         saveStatus = "Writing your shift to SQLite and shift-log.txt…";
@@ -35,6 +37,7 @@ public final class ResultPanel extends BackdropPanel {
         retry.setVisible(false);
     }
 
+    // Application calls this after both the SQLite save and text report succeed.
     public void saved() {
         saveFailed = false;
         saveStatus = "SAVED TO SQLITE  +  SHIFT-LOG.TXT";
@@ -43,6 +46,7 @@ public final class ResultPanel extends BackdropPanel {
         retry.setVisible(false);
     }
 
+    // Keep the result available for retry; returning to the menu requires an incomplete-save confirmation.
     public void failed() {
         saveFailed = true;
         saveStatus = "Save failed. Retry, or return to the menu without a complete save.";

@@ -4,6 +4,7 @@ import com.gudos.assets.AssetManager;
 
 import java.awt.*;
 
+/** Static guide/credits screen; the credits flag chooses which content is drawn. */
 public final class InfoPanel extends BackdropPanel {
     private final boolean credits;
 

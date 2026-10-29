@@ -19,14 +19,17 @@ public final class Database {
     private final String url;
 
     public Database(Path file) throws SQLException {
+        // SQLite is an embedded database file; there is no separate database server to connect to.
         url = "jdbc:sqlite:" + file.toAbsolutePath();
         try (Connection connection = connect(); Statement sql = connection.createStatement()) {
+            // Write-ahead logging lets SQLite coordinate reads with committed writes.
             sql.execute("PRAGMA journal_mode=WAL");
             int schemaVersion;
             try (ResultSet version = sql.executeQuery("PRAGMA user_version")) {
                 schemaVersion = version.next() ? version.getInt(1) : 0;
                 if (schemaVersion > 2) throw new SQLException("This database belongs to a newer game version.");
             }
+            // profiles identifies a player by a unique, case-insensitive local name.
             sql.execute("""
                     CREATE TABLE IF NOT EXISTS profiles (
                         id INTEGER PRIMARY KEY,
@@ -34,6 +37,7 @@ public final class Database {
                         created_at TEXT NOT NULL
                     )
                     """);
+            // One progress row per profile holds unlock state, not individual attempt history.
             sql.execute("""
                     CREATE TABLE IF NOT EXISTS progress (
                         profile_id INTEGER PRIMARY KEY REFERENCES profiles(id),
@@ -43,6 +47,8 @@ public final class Database {
                     )
                     """);
             sql.execute(runsTable("night_runs"));
+            // Version 2 adds CAUGHT as an allowed outcome. Rebuild/copy the old constrained table
+            // inside a transaction so a migration failure can restore the previous schema/data.
             if (schemaVersion == 1) {
                 connection.setAutoCommit(false);
                 try {
@@ -58,11 +64,14 @@ public final class Database {
                     throw error;
                 } finally { connection.setAutoCommit(true); }
             }
+            // Match the records screen's lookup: one profile, most recent end time first.
             sql.execute("CREATE INDEX IF NOT EXISTS runs_by_profile ON night_runs(profile_id, ended_at DESC)");
             sql.execute("PRAGMA user_version=2");
         }
     }
 
+    // Each night_runs row is a RunRecord linked to profiles.id through profile_id.
+    // The table argument is an internal schema name, never supplied by a player.
     private static String runsTable(String table) {
         return """
                     CREATE TABLE IF NOT EXISTS %s (
@@ -78,10 +87,12 @@ public final class Database {
                     """.formatted(table);
     }
 
+    // Each operation opens/closes its own connection. SQLite needs foreign keys enabled per connection.
     private Connection connect() throws SQLException {
         Connection connection = DriverManager.getConnection(url);
         try (Statement statement = connection.createStatement()) {
             statement.execute("PRAGMA foreign_keys=ON");
+            // Wait up to five seconds for a lock instead of immediately failing a busy write.
             statement.execute("PRAGMA busy_timeout=5000");
         } catch (SQLException error) {
             connection.close();
@@ -90,6 +101,8 @@ public final class Database {
         return connection;
     }
 
+    // Select or create the local profile, then ensure it has a default progress row.
+    // SQL placeholders bind values separately from SQL syntax, including names with quotes.
     private long profile(Connection connection, String name) throws SQLException {
         try (PreparedStatement insert = connection.prepareStatement("INSERT INTO profiles(name,created_at) VALUES(?,?) ON CONFLICT(name) DO NOTHING")) {
             insert.setString(1, name);
@@ -112,6 +125,8 @@ public final class Database {
         return id;
     }
 
+    // Unlock fields come from progress; attempt/completion counts are calculated from night_runs.
+    // Loading a name can create its profile if this is the first time it is used.
     public Progress loadProgress(String name) throws SQLException {
         try (Connection connection = connect()) {
             long id = profile(connection, name);
@@ -132,11 +147,13 @@ public final class Database {
         }
     }
 
+    // Atomically save an attempt and its unlock update. The separate text report is not in this transaction.
     public Progress saveRun(String name, RunRecord run) throws SQLException {
         try (Connection connection = connect()) {
             long profileId = profile(connection, name);
             connection.setAutoCommit(false);
             try {
+                // A UUID primary key makes retries idempotent: the same run is inserted at most once.
                 int inserted;
                 try (PreparedStatement insert = connection.prepareStatement("""
                         INSERT INTO night_runs(id,profile_id,night,elapsed_seconds,power_remaining,outcome,started_at,ended_at)
@@ -152,6 +169,7 @@ public final class Database {
                     insert.setString(8, run.endedAt().toString());
                     inserted = insert.executeUpdate();
                 }
+                // Only a newly saved win advances progress. MAX preserves unlocks on earlier-night replays.
                 if (inserted > 0 && run.outcome() == Outcome.COMPLETED) {
                     try (PreparedStatement update = connection.prepareStatement("""
                             UPDATE progress SET highest_completed=MAX(highest_completed,?),
@@ -164,6 +182,7 @@ public final class Database {
                         update.executeUpdate();
                     }
                 }
+                // Both attempt and progress changes become permanent together.
                 connection.commit();
             } catch (SQLException error) {
                 connection.rollback();
@@ -173,6 +192,7 @@ public final class Database {
         return loadProgress(name);
     }
 
+    // Return the newest 200 attempts for this player; older rows remain stored in SQLite.
     public List<RunRecord> loadRuns(String name) throws SQLException {
         List<RunRecord> runs = new ArrayList<>();
         try (Connection connection = connect()) {
@@ -181,6 +201,7 @@ public final class Database {
                 query.setLong(1, id);
                 try (ResultSet row = query.executeQuery()) {
                     while (row.next()) {
+                        // Convert SQL columns back into the game's immutable result representation.
                         runs.add(new RunRecord(row.getString("id"), row.getInt("night"), row.getDouble("elapsed_seconds"),
                                 row.getDouble("power_remaining"), Outcome.valueOf(row.getString("outcome")),
                                 Instant.parse(row.getString("started_at")), Instant.parse(row.getString("ended_at"))));

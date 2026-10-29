@@ -12,8 +12,10 @@ import java.util.List;
 public abstract class ScenePanel extends JPanel {
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
+    // Preserve original design bounds/font sizes so window resizing does not accumulate scaling errors.
     private record Slot(JComponent component, Rectangle bounds, Font font) { }
     private final List<Slot> slots = new ArrayList<>();
+    // Time spent updating this panel; animations use it independently of GameSession's shift clock.
     protected double age;
 
     protected ScenePanel() {
@@ -23,21 +25,25 @@ public abstract class ScenePanel extends JPanel {
         setFocusable(true);
     }
 
+    // Register a real Swing control using coordinates in the fixed 1280x720 design space.
     protected <T extends JComponent> T place(T component, int x, int y, int w, int h) {
         slots.add(new Slot(component, new Rectangle(x, y, w, h), component.getFont()));
         add(component);
         return component;
     }
 
+    // Uniform scaling preserves aspect ratio; offsets center the scene inside any unused borders.
     public double sceneScale() { return Math.min(getWidth() / (double) WIDTH, getHeight() / (double) HEIGHT); }
     public int offsetX() { return (int) Math.round((getWidth() - WIDTH * sceneScale()) / 2); }
     public int offsetY() { return (int) Math.round((getHeight() - HEIGHT * sceneScale()) / 2); }
 
+    // Reverse the rendering transform so mouse input remains accurate after a window resize.
     public Point2D scenePoint(Point point) {
         double scale = sceneScale();
         return scale <= 0 ? new Point2D.Double() : new Point2D.Double((point.x - offsetX()) / scale, (point.y - offsetY()) / scale);
     }
 
+    // Apply the same scene transform to actual Swing button/input bounds and font sizes.
     @Override public void doLayout() {
         double scale = sceneScale();
         for (Slot slot : slots) {
@@ -48,6 +54,8 @@ public abstract class ScenePanel extends JPanel {
         }
     }
 
+    // All screens share this setup/cleanup; subclasses implement only render() for their content.
+    // A copied graphics context isolates transforms and colors from Swing's original context.
     @Override protected final void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
         if (sceneScale() <= 0) return;
@@ -62,6 +70,7 @@ public abstract class ScenePanel extends JPanel {
 
     protected abstract void render(Graphics2D g);
 
+    // Swing controls paint after the background; the optional overlay paints above those controls.
     @Override protected void paintChildren(Graphics graphics) {
         super.paintChildren(graphics);
         if (sceneScale() <= 0) return;
@@ -88,6 +97,7 @@ public abstract class ScenePanel extends JPanel {
         return true;
     }
 
+    // Map a keystroke to a named Swing action that runs the supplied callback.
     protected void bind(String stroke, String name, Runnable action) {
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(stroke), name);
         getActionMap().put(name, new AbstractAction() {

@@ -16,21 +16,27 @@ import java.util.concurrent.Executors;
 
 /** Audio decoding and mixer calls never block Swing. Missing hardware degrades to silence. */
 public final class AudioService implements AutoCloseable {
+    // Facade: callers request sounds through play/ambience/menuMusic instead of managing Java Sound.
+    // One worker owns clip operations; its daemon thread does not keep the JVM alive on its own.
     private final ExecutorService executor = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "gudo-audio");
         thread.setDaemon(true);
         return thread;
     });
+    // Load each sound lazily and reuse its clip. Failed sounds are remembered to avoid repeated errors.
     private final Map<Sound, Clip> clips = new EnumMap<>(Sound.class);
     private final Set<Sound> unavailable = EnumSet.noneOf(Sound.class);
     private volatile int volume;
 
     public AudioService(int volume) { this.volume = volume; }
 
+    // Find an already-open clip, or decode its bundled resource the first time it is requested.
     private Clip clip(Sound sound) {
         if (unavailable.contains(sound)) return null;
         Clip clip = clips.get(sound);
         if (clip != null) return clip;
+        // Decorator (Java library): BufferedInputStream wraps an InputStream and adds buffering
+        // while remaining an InputStream. AudioSystem then interprets the buffered audio data.
         try (AudioInputStream stream = AudioSystem.getAudioInputStream(new BufferedInputStream(AssetManager.resource(sound.path())))) {
             clip = AudioSystem.getClip();
             clip.open(stream);
@@ -44,6 +50,7 @@ public final class AudioService implements AutoCloseable {
         }
     }
 
+    // Combine master volume with this sound's gain; Java Sound's gain control expects decibels.
     private void applyGain(Sound sound, Clip clip) {
         if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
             FloatControl control = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
@@ -56,11 +63,13 @@ public final class AudioService implements AutoCloseable {
         }
     }
 
+    // Update all cached clips on the same worker that performs playback operations.
     public void setVolume(int volume) {
         this.volume = Math.max(0, Math.min(100, volume));
         executor.execute(() -> clips.forEach(this::applyGain));
     }
 
+    // Play a one-shot cue from its beginning; repeated requests restart that sound's cached clip.
     public void play(Sound sound) {
         executor.execute(() -> {
             if (volume == 0) return;
@@ -73,6 +82,7 @@ public final class AudioService implements AutoCloseable {
         });
     }
 
+    // Replace the current background loops. Null stops them without starting a replacement.
     public void ambience(Sound sound) {
         executor.execute(() -> {
             for (Sound loop : new Sound[]{Sound.HUM, Sound.FAN, Sound.MENU_MUSIC, Sound.MENU_STATIC}) {
@@ -111,6 +121,7 @@ public final class AudioService implements AutoCloseable {
         });
     }
 
+    // Queue clip cleanup after existing audio tasks, then stop accepting new tasks.
     @Override public void close() {
         executor.execute(() -> clips.values().forEach(Clip::close));
         executor.shutdown();

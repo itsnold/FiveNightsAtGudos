@@ -2,6 +2,7 @@ package com.gudos.ui;
 
 import java.awt.*;
 
+/** Animated waiting screen; the calling worker performs loading and decides when to leave it. */
 public final class LoadingPanel extends ScenePanel {
     private final String message;
 

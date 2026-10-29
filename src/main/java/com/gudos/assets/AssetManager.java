@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+/** Loads bundled images once and exposes scene/state lookups to screens without file-handling code. */
 public final class AssetManager {
     private final Map<String, BufferedImage> scenes = new HashMap<>();
     private final BufferedImage[] menuRenders = new BufferedImage[5];
@@ -25,8 +26,10 @@ public final class AssetManager {
                 if (menuRenders[i] == null) throw new IOException("Unsupported menu image: " + menuFiles[i]);
             }
         }
+        // The manifest maps keys such as cam03.occupied to a classpath image resource.
         Properties manifest = new Properties();
         try (InputStream stream = resource("/config/scenes.properties")) { manifest.load(stream); }
+        // Several state keys may share one file; decode that file only once.
         Map<String, BufferedImage> loaded = new HashMap<>();
         for (String key : manifest.stringPropertyNames()) {
             String path = manifest.getProperty(key).strip();
@@ -38,6 +41,7 @@ public final class AssetManager {
             }
             scenes.put(key, image);
         }
+        // Every room needs a clean default image; broken required assets fail startup visibly.
         for (Scene scene : Scene.values()) {
             if (!scenes.containsKey(scene.id() + ".default")) throw new IOException("Missing default render: " + scene.id());
         }
@@ -62,14 +66,18 @@ public final class AssetManager {
         }
     }
 
+    // Unknown state names fall back to the room's default; listed-but-missing files fail during loading.
     public BufferedImage scene(Scene scene, String state) {
         return scenes.getOrDefault(scene.id() + "." + state, scenes.get(scene.id() + ".default"));
     }
 
+    // Wrap frame indices so callers can animate the noise indefinitely.
     public BufferedImage noise(int frame) { return noise[Math.floorMod(frame, noise.length)]; }
     public int noiseFrameCount() { return noise.length; }
     public BufferedImage menuRender(int index) { return menuRenders[index]; }
 
+    // Read from the classpath, so the same resource lookup works inside the packaged JAR.
+    // The caller owns and closes the returned stream.
     public static InputStream resource(String path) throws IOException {
         InputStream stream = AssetManager.class.getResourceAsStream(path);
         if (stream == null) throw new IOException("Missing bundled resource: " + path);

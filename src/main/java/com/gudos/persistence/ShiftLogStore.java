@@ -18,12 +18,14 @@ public final class ShiftLogStore {
 
     public void append(String profile, RunRecord run) throws IOException {
         Files.createDirectories(file.toAbsolutePath().getParent());
+        // Reuse the run ID as a marker so retrying after a partial save does not append twice.
         String marker = "run=" + run.id() + " |";
         if (Files.exists(file)) {
             try (Stream<String> lines = Files.lines(file, StandardCharsets.UTF_8)) {
                 if (lines.anyMatch(line -> line.contains(marker))) return;
             }
         }
+        // Store one UTF-8 report line per attempt. This file is readable, not a progress checkpoint.
         String line = String.format(Locale.ROOT,
                 "%s | run=%s | player=%s | night=%d | result=%s | duration=%s | power=%.1f%%%n",
                 run.endedAt(), run.id(), profile.replaceAll("\\p{Cntrl}", ""), run.night(),

@@ -16,6 +16,7 @@ import javax.swing.text.DocumentFilter;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 
+/** Edits a copy of the current preferences; Application owns saving and applying the submitted values. */
 public final class SettingsPanel extends BackdropPanel {
     private final JTextField name;
     private final JSlider volume;
@@ -37,6 +38,7 @@ public final class SettingsPanel extends BackdropPanel {
         name.setSelectionColor(new Color(75, 75, 75));
         name.setBorder(new CompoundBorder(new LineBorder(Theme.LINE), new EmptyBorder(4, 13, 4, 13)));
         name.getAccessibleContext().setAccessibleName("Player name, up to 32 characters");
+        // Filter pasted/typed names before display: remove control characters and cap at 32 characters.
         ((AbstractDocument) name.getDocument()).setDocumentFilter(new DocumentFilter() {
             @Override public void insertString(FilterBypass bypass, int offset, String text, AttributeSet attributes) throws BadLocationException {
                 replace(bypass, offset, 0, text, attributes);
@@ -75,7 +77,9 @@ public final class SettingsPanel extends BackdropPanel {
         fullscreen = checkbox("Borderless fullscreen", settings.fullscreen());
         place(reducedEffects, 79, 451, 640, 36);
         place(fullscreen, 79, 524, 640, 36);
+        // Editing controls alone does not save; Apply submits a new immutable Settings value.
         apply = place(new GameButton("APPLY SETTINGS    →", GameButton.Style.PRIMARY, () -> navigation.saveSettings(values())), 82, 595, 280, 44);
+        // Copy the actual resolved save directory, including any gudo.dataDir launch override.
         place(new GameButton("COPY DATA FOLDER", GameButton.Style.SECONDARY, () -> {
             try { Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(paths.directory().toString()), null); }
             catch (IllegalStateException error) { JOptionPane.showMessageDialog(this, "Clipboard unavailable.\n" + paths.directory()); }
@@ -95,6 +99,7 @@ public final class SettingsPanel extends BackdropPanel {
         return box;
     }
 
+    // Custom checkbox artwork; the JCheckBox still handles selection and input normally.
     private record CheckIcon(boolean checked) implements Icon {
         @Override public int getIconWidth() { return 22; }
         @Override public int getIconHeight() { return 22; }
@@ -115,10 +120,12 @@ public final class SettingsPanel extends BackdropPanel {
         }
     }
 
+    // Read the form as one value object; Settings validates/clamps the values again.
     public Settings values() { return new Settings(name.getText(), volume.getValue(), reducedEffects.isSelected(), fullscreen.isSelected()); }
 
     public void setFullscreen(boolean value) { fullscreen.setSelected(value); }
 
+    // Prevent another Apply request while the storage worker is still processing this one.
     public void setSaving(boolean saving) {
         apply.setEnabled(!saving);
         status = saving ? "Saving preferences…" : "Preferences are written to settings.txt when you apply.";

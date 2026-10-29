@@ -25,10 +25,12 @@ public final class JumpscarePanel extends ScenePanel {
         Graphics2D g = frame.createGraphics();
         g.drawImage(still, 0, 0, WIDTH, HEIGHT, null);
         g.dispose();
+        // Precompute horizontal blur once; rendering reuses it instead of filtering every frame.
         float[] streak = {0.06f, 0.09f, 0.12f, 0.15f, 0.16f, 0.15f, 0.12f, 0.09f, 0.06f};
         blurred = new ConvolveOp(new Kernel(9, 1, streak), ConvolveOp.EDGE_NO_OP, null).filter(frame, null);
     }
 
+    // Deliver the completion callback exactly once, letting Application show the result screen.
     @Override public void tick(double seconds) {
         super.tick(seconds);
         if (age >= DURATION && !delivered) {
@@ -40,6 +42,7 @@ public final class JumpscarePanel extends ScenePanel {
     @Override protected void render(Graphics2D g) {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, WIDTH, HEIGHT);
+        // Animate one still with zoom/shake; reduced effects keeps the image stationary.
         double zoom = reducedEffects ? 1 : 1.06 + Math.min(0.14, age * 0.18);
         int w = (int) Math.ceil(WIDTH * zoom);
         int h = (int) Math.ceil(HEIGHT * zoom);

@@ -5,6 +5,7 @@ import com.gudos.persistence.Progress;
 
 import java.awt.*;
 
+/** Displays five nights; buttons are enabled from the current profile's saved progress. */
 public final class NightSelectPanel extends BackdropPanel {
     private final Progress progress;
 
@@ -13,6 +14,7 @@ public final class NightSelectPanel extends BackdropPanel {
         this.progress = progress;
         backButton(navigation);
         for (int night = 1; night <= 5; night++) {
+            // Capture this iteration's value for the callback; the loop variable itself keeps changing.
             int selected = night;
             GameButton button = new GameButton("Night " + night, GameButton.Style.TEXT, () -> navigation.startNight(selected));
             button.setFont(Theme.pixel(44));

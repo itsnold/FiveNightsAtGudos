@@ -9,10 +9,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/** Entry point: creates the window, loads local data/assets, then hands control to Application. */
 public final class Main {
     private Main() { }
 
     public static void main(String[] args) {
+        // Swing components must be created and changed on its event dispatch thread (EDT).
         SwingUtilities.invokeLater(Main::launch);
     }
 
@@ -37,10 +39,12 @@ public final class Main {
         frame.setMinimumSize(new Dimension(Math.min(960, screen.width - 40), Math.min(580, screen.height - 40)));
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+        // Animate the loading screen while the worker below performs slower disk operations.
         Timer loadingTimer = new Timer(33, event -> { loading.tick(0.033); loading.repaint(); });
         loadingTimer.start();
         new SwingWorker<Boot, Void>() {
             @Override protected Boot doInBackground() throws Exception {
+                // Resolve the save folder, read preferences, open SQLite, and load this profile.
                 AppPaths paths = AppPaths.resolve();
                 SettingsStore store = new SettingsStore(paths.settings());
                 Settings settings = store.load();
@@ -51,6 +55,7 @@ public final class Main {
             }
 
             @Override protected void done() {
+                // SwingWorker returns here on the EDT, so it is safe to install the game UI.
                 loadingTimer.stop();
                 if (!frame.isDisplayable()) return;
                 try {
@@ -68,6 +73,7 @@ public final class Main {
         }.execute();
     }
 
+    // Draw the window icon in memory; no separate icon file is needed.
     private static Image icon() {
         BufferedImage image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
@@ -81,6 +87,7 @@ public final class Main {
         return image;
     }
 
+    // Immutable bundle carrying the worker's results back to the UI thread.
     private record Boot(AppPaths paths, SettingsStore store, Settings settings, Database database,
                         Progress progress, AssetManager assets) { }
 }

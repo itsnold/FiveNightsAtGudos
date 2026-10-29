@@ -22,15 +22,18 @@ import java.util.function.Supplier;
 public final class GamePanel extends ScenePanel {
     private final GameSession session;
     private final AssetManager assets;
+    // Separate renderers keep their own reusable output images, allowing clean/occupied views to blend.
     private final PanoramaRenderer officeProjection = new PanoramaRenderer();
     private final PanoramaRenderer occupiedProjection = new PanoramaRenderer();
     private final PanoramaRenderer cameraProjection = new PanoramaRenderer();
+    // Callbacks let this screen read current preferences, request a sound, or pause through Application.
     private final Supplier<Settings> settings;
     private final Consumer<Sound> sound;
     private final Runnable pause;
     private final GameButton monitorButton;
     private final GameButton lightButton;
     private final List<GameButton> cameras = new ArrayList<>();
+    // Track held inputs separately from the simulation; releaseControls clears them on pause/exit.
     private boolean leftHeld;
     private boolean rightHeld;
     private boolean keyboardLight;
@@ -63,6 +66,7 @@ public final class GamePanel extends ScenePanel {
             @Override public void mouseReleased(MouseEvent event) { mouseLight = false; updateLight(); }
             @Override public void mouseExited(MouseEvent event) { mouseLight = false; updateLight(); }
         });
+        // The six real Swing camera buttons are positioned over the floor-plan drawing.
         int[][] positions = {{993, 378}, {880, 450}, {880, 510}, {880, 576}, {1125, 450}, {1125, 513}};
         for (int camera = 1; camera <= 6; camera++) {
             int number = camera;
@@ -72,6 +76,7 @@ public final class GamePanel extends ScenePanel {
             cameras.add(place(control, positions[camera - 1][0], positions[camera - 1][1], 64, 42));
             bind("pressed " + camera, "camera-" + camera, () -> selectCamera(number));
         }
+        // Press/release pairs support held movement/light; monitor toggles only once per key press.
         bind("pressed SPACE", "monitor-space", () -> { if (!spaceHeld) { spaceHeld = true; toggleMonitor(); } });
         bind("released SPACE", "monitor-space-release", () -> spaceHeld = false);
         bind("pressed TAB", "monitor-tab", () -> { if (!tabHeld) { tabHeld = true; toggleMonitor(); } });
@@ -87,6 +92,7 @@ public final class GamePanel extends ScenePanel {
         bind("released D", "right-d-off", () -> rightHeld = false);
         bind("pressed RIGHT", "right-arrow", () -> rightHeld = true);
         bind("released RIGHT", "right-arrow-off", () -> rightHeld = false);
+        // Convert window pixels to the same 1280x720 coordinate system used by the scene.
         addMouseMotionListener(new MouseAdapter() {
             @Override public void mouseMoved(MouseEvent event) { pointer = scenePoint(event.getPoint()); pointerInside = true; }
             @Override public void mouseDragged(MouseEvent event) { mouseMoved(event); }
@@ -103,6 +109,7 @@ public final class GamePanel extends ScenePanel {
         return button;
     }
 
+    // Clear physical input state before switching screens so keys cannot remain logically held.
     public void releaseControls() {
         leftHeld = rightHeld = keyboardLight = mouseLight = pointerInside = spaceHeld = tabHeld = false;
         session.setLight(false);
@@ -110,8 +117,10 @@ public final class GamePanel extends ScenePanel {
 
     public double officePan() { return pan; }
 
+    // Either input can hold the light; GameSession still enforces monitor/pause restrictions.
     private void updateLight() { session.setLight(keyboardLight || mouseLight); }
 
+    // Request the model change first, then play feedback only if it actually happened.
     private void toggleMonitor() {
         boolean before = session.monitorOpen();
         keyboardLight = mouseLight = false;
@@ -123,6 +132,7 @@ public final class GamePanel extends ScenePanel {
         syncControls();
     }
 
+    // Camera selection is accepted by the model only while the monitor is open.
     private void selectCamera(int number) {
         int before = session.camera();
         session.selectCamera(number);
@@ -133,6 +143,7 @@ public final class GamePanel extends ScenePanel {
         syncControls();
     }
 
+    // Mirror the model in button visibility, selection, and labels; these controls do not own game state.
     private void syncControls() {
         for (int i = 0; i < cameras.size(); i++) {
             cameras.get(i).setVisible(session.monitorOpen());
@@ -147,6 +158,7 @@ public final class GamePanel extends ScenePanel {
         }
     }
 
+    // Update visual/input state after Application has advanced GameSession for this frame.
     @Override public void tick(double seconds) {
         super.tick(seconds);
         transition = Math.max(0, transition - seconds);
@@ -156,6 +168,7 @@ public final class GamePanel extends ScenePanel {
                 if (pointer.getX() < 340) direction = -(340 - pointer.getX()) / 340;
                 else if (pointer.getX() > 940) direction = (pointer.getX() - 940) / 340;
             }
+            // Ease toward the requested direction rather than snapping the office image sideways.
             targetPan = Math.max(0, Math.min(1, targetPan + direction * seconds * 0.72));
             pan += (targetPan - pan) * (1 - Math.exp(-seconds * 9));
             session.setOfficePan(pan);
@@ -163,6 +176,7 @@ public final class GamePanel extends ScenePanel {
         if (!session.paused() && !session.finished()) {
             retreatNotice = Math.max(0, retreatNotice - seconds);
             Scene location = session.gudo().location();
+            // Compare successive model states so footsteps/warnings play once per location change.
             if (location != lastGudoLocation) {
                 if (session.gudo().atOffice()) sound.accept(Sound.GUDO_WARNING);
                 else if (location != null) sound.accept(Sound.GUDO_STEP);
@@ -178,12 +192,14 @@ public final class GamePanel extends ScenePanel {
         syncControls();
     }
 
+    // Draw the current world view first, then the clock, power, and encounter messages on top.
     @Override protected void render(Graphics2D g) {
         if (session.monitorOpen()) renderCamera(g);
         else renderOffice(g);
         renderHud(g);
     }
 
+    // Flashlight exposure blends the occupied panorama toward the clean room as Gudo retreats.
     private void renderOffice(Graphics2D g) {
         double fade = session.gudo().fadeProgress();
         if (session.gudo().atOffice() && fade > 0) {
@@ -205,6 +221,7 @@ public final class GamePanel extends ScenePanel {
         shadeHud(g);
     }
 
+    // Camera movement uses the session clock, not the mouse or time spent watching this feed.
     private void renderCamera(Graphics2D g) {
         Scene scene = Scene.camera(session.camera());
         double sweep = CameraMotion.pan(scene, session.elapsed());
@@ -230,6 +247,7 @@ public final class GamePanel extends ScenePanel {
         renderMap(g);
     }
 
+    // Draw the static floor plan; interactive camera controls are separate Swing buttons above it.
     private void renderMap(Graphics2D g) {
         g.setColor(new Color(0, 0, 0, 80));
         g.fillRect(845, 349, 377, 290);
@@ -256,6 +274,7 @@ public final class GamePanel extends ScenePanel {
         Theme.text(g, "YOU", 1009, 618, Theme.pixel(28), Color.WHITE);
     }
 
+    // Dark gradients keep HUD text readable over bright room images.
     private void shadeHud(Graphics2D g) {
         g.setPaint(new GradientPaint(0, 0, new Color(0, 0, 0, 100), 0, 135, new Color(0, 0, 0, 0)));
         g.fillRect(0, 0, WIDTH, 135);
@@ -263,6 +282,7 @@ public final class GamePanel extends ScenePanel {
         g.fillRect(0, 559, WIDTH, 161);
     }
 
+    // Read model values for warnings, defense progress, fictional time, power, and usage bars.
     private void renderHud(Graphics2D g) {
         if (session.gudo().atOffice() && !session.finished()) {
             String warning = "FOOTSTEPS: " + session.gudo().approach().label();
@@ -298,6 +318,7 @@ public final class GamePanel extends ScenePanel {
         }
     }
 
+    // ScenePanel calls this after painting Swing children, allowing effects to cover the whole screen.
     @Override protected void renderOverlay(Graphics2D g) {
         if (session.monitorOpen()) VhsOverlay.paint(g, assets, age, 0.035f, settings.get().reducedEffects());
         if (age < 2 && !settings.get().reducedEffects()) {

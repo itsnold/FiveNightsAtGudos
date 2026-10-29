@@ -1,5 +1,6 @@
 package com.gudos.game;
 
+/** Room identifiers shared by gameplay, camera controls, and the scene-image manifest. */
 public enum Scene {
     OFFICE("office", "Security office", 0),
     CAM_01("cam01", "Dining area", 1),
@@ -24,6 +25,7 @@ public enum Scene {
     public int camera() { return camera; }
 
     public static Scene camera(int number) {
+        // OFFICE occupies ordinal 0, so validated camera numbers map to the remaining entries.
         if (number < 1 || number > 6) throw new IllegalArgumentException("Camera must be 1–6");
         return values()[number];
     }

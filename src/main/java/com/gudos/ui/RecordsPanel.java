@@ -13,6 +13,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/** Read-only table built from attempts already loaded by Application's storage worker. */
 public final class RecordsPanel extends BackdropPanel {
     private final String player;
     private final Progress progress;
@@ -25,10 +26,12 @@ public final class RecordsPanel extends BackdropPanel {
         empty = runs.isEmpty();
         backButton(navigation);
         if (empty) return;
+        // Stored Instants represent absolute timestamps; display them in this computer's local timezone.
         DateTimeFormatter date = DateTimeFormatter.ofPattern("MMM dd, yyyy  HH:mm").withZone(ZoneId.systemDefault());
         DefaultTableModel model = new DefaultTableModel(new String[]{"FINISHED", "NIGHT", "RESULT", "TIME ON DUTY", "POWER LEFT"}, 0) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
+        // Convert typed game results into the five columns shown to the player. No SQL runs in this panel.
         for (RunRecord run : runs) model.addRow(new Object[]{date.format(run.endedAt()), "%02d".formatted(run.night()), run.outcome().label(), run.durationLabel(), "%d%%".formatted(Math.round(run.powerRemaining()))});
         JTable table = new JTable(model);
         table.setFont(Theme.mono(14));
@@ -69,6 +72,7 @@ public final class RecordsPanel extends BackdropPanel {
         place(scroll, 82, 331, 1116, 272);
     }
 
+    // Summary counters cover all this profile's attempts, even though only the newest 200 rows are loaded.
     @Override protected void render(Graphics2D g) {
         pageChrome(g, "THE SHIFT REGISTER", "Saved locally in SQLite. Showing the latest 200 attempts for this player.");
         String[] labels = {"ON DUTY", "SHIFTS ATTEMPTED", "SHIFTS COMPLETED", "NIGHTS CLEARED"};

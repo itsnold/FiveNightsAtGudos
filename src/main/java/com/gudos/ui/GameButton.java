@@ -3,6 +3,7 @@ package com.gudos.ui;
 import javax.swing.*;
 import java.awt.*;
 
+/** A normal Swing button with custom painting and a caller-supplied action. */
 public final class GameButton extends JButton {
     public enum Style { PRIMARY, SECONDARY, QUIET, CAMERA, TEXT, MONITOR, LIGHT }
     private final Style style;
@@ -19,9 +20,11 @@ public final class GameButton extends JButton {
         setOpaque(false);
         setRolloverEnabled(true);
         getAccessibleContext().setAccessibleName(text);
+        // Swing delivers the click event; the callback decides which game/navigation action to request.
         addActionListener(event -> action.run());
     }
 
+    // Style selects the appearance; the inherited button model still owns pressed/selected states.
     @Override protected void paintComponent(Graphics graphics) {
         Graphics2D g = (Graphics2D) graphics.create();
         Theme.quality(g);

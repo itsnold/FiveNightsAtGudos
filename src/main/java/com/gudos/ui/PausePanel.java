@@ -5,6 +5,7 @@ import com.gudos.game.GameSession;
 
 import java.awt.*;
 
+/** Shows the same session's paused state; Application performs resume or abandoned-shift saving. */
 public final class PausePanel extends BackdropPanel {
     private final GameSession session;
 
