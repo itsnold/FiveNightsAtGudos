@@ -59,7 +59,7 @@ public final class ResultPanel extends BackdropPanel {
         backdrop(g);
         boolean completed = run.outcome() == Outcome.COMPLETED;
         Theme.tracked(g, "NIGHT %02d  /  %s".formatted(run.night(), run.outcome().label().toUpperCase(java.util.Locale.ROOT)), 452, 151, 12, completed ? Theme.GREEN : Theme.AMBER);
-        String title = completed ? "6 AM" : run.outcome() == Outcome.CAUGHT ? "GUDO FOUND YOU" : run.outcome() == Outcome.POWER_OUT ? "POWER FAILURE" : "OFF THE CLOCK";
+        String title = completed ? "6 AM" : run.outcome() == Outcome.MINIGAME_COMPLETED ? "SECRET FOUND" : run.outcome() == Outcome.CAUGHT ? "GUDO FOUND YOU" : run.outcome() == Outcome.POWER_OUT ? "POWER FAILURE" : "OFF THE CLOCK";
         g.setFont(Theme.heading(completed ? 112 : 64));
         int titleX = (WIDTH - g.getFontMetrics().stringWidth(title)) / 2;
         Theme.text(g, title, titleX, 281, Theme.heading(completed ? 112 : 64), Theme.PAPER);

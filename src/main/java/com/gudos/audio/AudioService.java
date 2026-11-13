@@ -37,7 +37,9 @@ public final class AudioService implements AutoCloseable {
         if (clip != null) return clip;
         // Decorator (Java library): BufferedInputStream wraps an InputStream and adds buffering
         // while remaining an InputStream. AudioSystem then interprets the buffered audio data.
-        try (AudioInputStream stream = AudioSystem.getAudioInputStream(new BufferedInputStream(AssetManager.resource(sound.path())))) {
+        // A null path identifies a synthesized minigame sound; other sounds use bundled WAVs.
+        try (AudioInputStream stream = sound.path() == null ? Chiptune.create(sound)
+                : AudioSystem.getAudioInputStream(new BufferedInputStream(AssetManager.resource(sound.path())))) {
             clip = AudioSystem.getClip();
             clip.open(stream);
             clips.put(sound, clip);
@@ -82,10 +84,16 @@ public final class AudioService implements AutoCloseable {
         });
     }
 
+    /** Stop music, ambience and any playing one-shots, in audio-worker order. */
+    public void stopAll() {
+        executor.execute(() -> clips.values().forEach(Clip::stop));
+    }
+
     // Replace the current background loops. Null stops them without starting a replacement.
     public void ambience(Sound sound) {
         executor.execute(() -> {
-            for (Sound loop : new Sound[]{Sound.HUM, Sound.FAN, Sound.MENU_MUSIC, Sound.MENU_STATIC}) {
+            // Stop every known background loop before starting the requested scene's ambience.
+            for (Sound loop : new Sound[]{Sound.HUM, Sound.FAN, Sound.MENU_MUSIC, Sound.MENU_STATIC, Sound.SECRET_AMBIENCE}) {
                 Clip old = clips.get(loop);
                 if (old != null) old.stop();
             }
@@ -104,7 +112,7 @@ public final class AudioService implements AutoCloseable {
         executor.execute(() -> {
             Clip music = clip(Sound.MENU_MUSIC);
             Clip staticNoise = clip(Sound.MENU_STATIC);
-            for (Sound loop : new Sound[]{Sound.HUM, Sound.FAN, Sound.MENU_MUSIC, Sound.MENU_STATIC}) {
+            for (Sound loop : new Sound[]{Sound.HUM, Sound.FAN, Sound.MENU_MUSIC, Sound.MENU_STATIC, Sound.SECRET_AMBIENCE}) {
                 Clip old = clips.get(loop);
                 if (old != null) old.stop();
             }

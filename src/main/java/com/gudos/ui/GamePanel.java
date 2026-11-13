@@ -3,6 +3,7 @@ package com.gudos.ui;
 import com.gudos.assets.AssetManager;
 import com.gudos.assets.PanoramaRenderer;
 import com.gudos.audio.Sound;
+import com.gudos.game.CameraMotion;
 import com.gudos.game.GameSession;
 import com.gudos.game.Scene;
 import com.gudos.persistence.Settings;
@@ -28,6 +29,8 @@ public final class GamePanel extends ScenePanel {
     // Separate renderers keep their own reusable output images, allowing clean/occupied views to blend.
     private final PanoramaRenderer officeProjection = new PanoramaRenderer();
     private final PanoramaRenderer occupiedProjection = new PanoramaRenderer();
+    // Match the camera's sweep when translating clicks back to the source-image paper.
+    private final PanoramaRenderer cameraProjection = new PanoramaRenderer();
     private final SceneRenderer cameraRenderer;
     private final SceneRenderer cameraTransitionRenderer;
     // Callbacks let this screen read current preferences, request a sound, or pause through Application.
@@ -52,6 +55,8 @@ public final class GamePanel extends ScenePanel {
     private Scene lastGudoLocation;
     private int lastRepelled;
     private double retreatNotice;
+    private Runnable secret = () -> { };
+    private int paperClicks;
 
     public GamePanel(GameSession session, AssetManager assets, Supplier<Settings> settings,
                      Consumer<Sound> sound, Runnable pause) {
@@ -66,9 +71,9 @@ public final class GamePanel extends ScenePanel {
                 new DimmedRendererDecorator(cameraRenderer, 115), assets, 0.85f, 3);
         setFocusTraversalKeysEnabled(false);
         monitorButton = place(button("OPEN MONITOR    [SPACE]", GameButton.Style.MONITOR, this::toggleMonitor), 335, 647, 650, 55);
-        monitorButton.setToolTipText("Raise/lower monitor [Space / Tab]");
+        monitorButton.getAccessibleContext().setAccessibleDescription("Raise or lower the monitor with Space or Tab.");
         lightButton = place(button("HOLD LIGHT  [F]", GameButton.Style.LIGHT, () -> { }), 21, 326, 74, 127);
-        lightButton.setToolTipText("Face Sir Gudo's doorway and hold F until he fades away.");
+        lightButton.getAccessibleContext().setAccessibleDescription("Face Sir Gudo's doorway and hold F until he fades away.");
         lightButton.addMouseListener(new MouseAdapter() {
             @Override public void mousePressed(MouseEvent event) { if (SwingUtilities.isLeftMouseButton(event)) { mouseLight = true; updateLight(); } }
             @Override public void mouseReleased(MouseEvent event) { mouseLight = false; updateLight(); }
@@ -79,8 +84,7 @@ public final class GamePanel extends ScenePanel {
         for (int camera = 1; camera <= 6; camera++) {
             int number = camera;
             GameButton control = button("CAM\n%02d".formatted(camera), GameButton.Style.CAMERA, () -> selectCamera(number));
-            control.setToolTipText("CAM %02d — %s [%d]".formatted(camera, Scene.camera(camera).label(), camera));
-            control.getAccessibleContext().setAccessibleName(control.getToolTipText());
+            control.getAccessibleContext().setAccessibleName("CAM %02d — %s [%d]".formatted(camera, Scene.camera(camera).label(), camera));
             cameras.add(place(control, positions[camera - 1][0], positions[camera - 1][1], 64, 42));
             bind("pressed " + camera, "camera-" + camera, () -> selectCamera(number));
         }
@@ -107,9 +111,28 @@ public final class GamePanel extends ScenePanel {
         });
         addMouseListener(new MouseAdapter() {
             @Override public void mouseExited(MouseEvent event) { pointerInside = false; }
+            @Override public void mouseClicked(MouseEvent event) {
+                // Only left-clicks on the active CAM 04 feed can count toward the hidden trigger.
+                if (!SwingUtilities.isLeftMouseButton(event) || !session.monitorOpen() || session.camera() != 4 || session.paused() || session.finished()) return;
+                Point2D p = scenePoint(event.getPoint());
+                // The projection is recomputed at the current sweep, then mapped back to the source image.
+                var source = assets.scene(Scene.CAM_04, session.sceneState(Scene.CAM_04));
+                cameraProjection.render(source, CameraMotion.pan(Scene.CAM_04, session.elapsed()));
+                Point pixel = cameraProjection.sourcePoint((int) (p.getX() * PanoramaRenderer.WIDTH / WIDTH), (int) (p.getY() * PanoramaRenderer.HEIGHT / HEIGHT));
+                // The bounds are fractions of the original stockroom image, so the target follows
+                // camera panning and window resizing. Only a click inside the paper increments the count.
+                if (pixel != null && pixel.x >= source.getWidth() * 0.285 && pixel.x <= source.getWidth() * 0.325
+                        && pixel.y >= source.getHeight() * 0.24 && pixel.y <= source.getHeight() * 0.40 && ++paperClicks >= 5) {
+                    paperClicks = 0;
+                    secret.run();
+                }
+            }
         });
         syncControls();
     }
+
+    // Application supplies the navigation callback; this panel does not construct the minigame.
+    public void onSecret(Runnable action) { secret = action; }
 
     private GameButton button(String label, GameButton.Style style, Runnable action) {
         GameButton button = new GameButton(label, style, action);

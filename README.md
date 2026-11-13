@@ -30,6 +30,7 @@ On macOS, double-click **`run.command`**, or run `./run.command` in Terminal. Th
 - Completed, power-failure and caught results. Five unlockable nights with increasingly fast movement and shorter defense windows.
 - Automatic pause on focus loss and borderless fullscreen.
 - Persistent local profiles, progress, attempt history, text preferences and shift reports.
+- A hidden lore platformer on CAM 04 (Nights 1–4), replayable without limit. A/D or arrows move, Space jumps, E picks up, drops or delivers the bundle, and Esc pauses. The 60-second timer starts on pickup. Walk behind foreground cover while carrying the bundle, or drop it behind cover to hide it from the three patrolling witnesses. The timer continues while hiding. Both winning and failing restart the same night; winning does not unlock the next night.
 
 **Survive Sir Gudo:** watch his progress on CCTV, lower the monitor when he reaches the office, face his doorway with A/D or the mouse edges, and hold F until he completely disappears. Release the flashlight between encounters to conserve power. Footsteps and a direction hint announce an office arrival even while the monitor is open. Ignoring him causes a jumpscare and a recorded loss.
 
@@ -69,7 +70,7 @@ Writable data is kept **outside the application/JAR**:
 
 Change your player name in Settings to select/create a separate local profile. Names are case-insensitive; this is not an online account or authentication system. SQLite is authoritative for progress; the text report is not used as a substitute database. Storage operations run off Swing's event thread, SQL uses prepared statements, and attempt/progress writes are transactional.
 
-Existing version-1 databases automatically migrate to version 2 in a transaction so `CAUGHT` can be stored while preserving profiles, progress and old runs. A caught attempt begins saving while its 2.1-second jumpscare plays.
+Existing databases migrate to version 5, preserving profiles, progress and old runs. Completion flags left by older versions are retained but no longer restrict access to the minigame. A caught attempt begins saving while its 2.1-second jumpscare plays.
 
 For an isolated test save location:
 

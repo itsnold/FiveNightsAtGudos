@@ -27,7 +27,7 @@ public final class Database {
             int schemaVersion;
             try (ResultSet version = sql.executeQuery("PRAGMA user_version")) {
                 schemaVersion = version.next() ? version.getInt(1) : 0;
-                if (schemaVersion > 2) throw new SQLException("This database belongs to a newer game version.");
+                if (schemaVersion > 5) throw new SQLException("This database belongs to a newer game version.");
             }
             // profiles identifies a player by a unique, case-insensitive local name.
             sql.execute("""
@@ -66,7 +66,34 @@ public final class Database {
             }
             // Match the records screen's lookup: one profile, most recent end time first.
             sql.execute("CREATE INDEX IF NOT EXISTS runs_by_profile ON night_runs(profile_id, ended_at DESC)");
-            sql.execute("PRAGMA user_version=2");
+            if (schemaVersion > 0 && schemaVersion < 3) {
+                connection.setAutoCommit(false);
+                try {
+                    sql.execute(runsTable("night_runs_v3"));
+                    sql.execute("INSERT INTO night_runs_v3 SELECT * FROM night_runs");
+                    sql.execute("DROP TABLE night_runs");
+                    sql.execute("ALTER TABLE night_runs_v3 RENAME TO night_runs");
+                    sql.execute("CREATE INDEX runs_by_profile ON night_runs(profile_id, ended_at DESC)");
+                    connection.commit();
+                } catch (SQLException error) {
+                    connection.rollback();
+                    throw error;
+                } finally { connection.setAutoCommit(true); }
+            }
+            if (schemaVersion == 3) {
+                connection.setAutoCommit(false);
+                try {
+                    sql.execute(runsTable("night_runs_v4"));
+                    sql.execute("INSERT INTO night_runs_v4 SELECT * FROM night_runs");
+                    sql.execute("DROP TABLE night_runs");
+                    sql.execute("ALTER TABLE night_runs_v4 RENAME TO night_runs");
+                    sql.execute("CREATE INDEX runs_by_profile ON night_runs(profile_id, ended_at DESC)");
+                    connection.commit();
+                } catch (SQLException error) { connection.rollback(); throw error; }
+                finally { connection.setAutoCommit(true); }
+            }
+            // Legacy completion tables, if present, are left intact but no longer restrict play.
+            sql.execute("PRAGMA user_version=5");
         }
     }
 
@@ -80,7 +107,7 @@ public final class Database {
                         night INTEGER NOT NULL CHECK(night BETWEEN 1 AND 5),
                         elapsed_seconds REAL NOT NULL CHECK(elapsed_seconds >= 0),
                         power_remaining REAL NOT NULL CHECK(power_remaining BETWEEN 0 AND 100),
-                        outcome TEXT NOT NULL CHECK(outcome IN ('COMPLETED','POWER_OUT','ABANDONED','CAUGHT')),
+                        outcome TEXT NOT NULL CHECK(outcome IN ('COMPLETED','POWER_OUT','ABANDONED','CAUGHT','MINIGAME_FAILED','MINIGAME_COMPLETED')),
                         started_at TEXT NOT NULL,
                         ended_at TEXT NOT NULL
                     )
@@ -169,7 +196,9 @@ public final class Database {
                     insert.setString(8, run.endedAt().toString());
                     inserted = insert.executeUpdate();
                 }
-                // Only a newly saved win advances progress. MAX preserves unlocks on earlier-night replays.
+                // Only normal shift survival advances progress. MINIGAME_COMPLETED is recorded
+                // as an attempt but deliberately does not unlock the next night.
+                // MAX preserves unlocks on earlier-night replays.
                 if (inserted > 0 && run.outcome() == Outcome.COMPLETED) {
                     try (PreparedStatement update = connection.prepareStatement("""
                             UPDATE progress SET highest_completed=MAX(highest_completed,?),

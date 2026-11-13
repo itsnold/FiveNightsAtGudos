@@ -6,6 +6,9 @@ import com.gudos.audio.Sound;
 import com.gudos.game.GameSession;
 import com.gudos.game.Outcome;
 import com.gudos.game.RunRecord;
+import com.gudos.game.minigame.SecretGame;
+import com.gudos.game.minigame.SecretLevel;
+import com.gudos.game.minigame.SecretLevelBuilder;
 import com.gudos.persistence.*;
 import com.gudos.ui.*;
 
@@ -40,6 +43,9 @@ public final class Application implements Navigation {
     private ScenePanel current;
     private GameSession session;
     private GamePanel gamePanel;
+    private SecretPanel secretPanel;
+    // Retained until the corresponding run and its text report have both been saved.
+    private int nextNightAfterSecret;
     private ResultPanel resultPanel;
     // Capture the player when the shift starts so its result stays attached to that profile.
     private String activeProfile;
@@ -84,6 +90,7 @@ public final class Application implements Navigation {
                 if (!changingDisplay) {
                     escapeDown = fullscreenDown = false;
                     if (current == gamePanel) pauseShift();
+                    else if (current == secretPanel && secretPanel != null) secretPanel.pause();
                 }
             }
         });
@@ -151,8 +158,10 @@ public final class Application implements Navigation {
 
     // Clear the previous shift's UI state; saved database progress is kept separately.
     private void showMenu() {
+        nextNightAfterSecret = 0;
         session = null;
         gamePanel = null;
+        secretPanel = null;
         pendingRun = null;
         resultPanel = null;
         pendingSaved = false;
@@ -217,12 +226,59 @@ public final class Application implements Navigation {
         pendingRun = null;
         pendingSaved = false;
         resultPanel = null;
+        nextNightAfterSecret = 0;
         activeProfile = settings.playerName();
         session = new GameSession(night);
         // Supply current settings and callbacks, so GamePanel need not own storage or audio services.
         gamePanel = new GamePanel(session, assets, () -> settings, audio::play, this::pauseShift);
+        gamePanel.onSecret(this::openSecret);
         show(gamePanel);
         audio.ambience(Sound.FAN);
+    }
+
+    // Opening does not wait for storage; previous secret attempts never block another play.
+    private void openSecret() {
+        // Night 5 is deliberately excluded. Replaying on earlier nights is always allowed.
+        if (busy || session == null || session.night() >= 5 || current != gamePanel) return;
+        // Freeze the existing shift before switching screens: its clock, power and encounter stop.
+        gamePanel.releaseControls();
+        session.pause();
+        try {
+            secretPanel = new SecretPanel(new SecretGame(createSecretLevel()), this::finishSecret, audio::play, audio::stopAll, () -> settings.reducedEffects());
+            show(secretPanel);
+            audio.ambience(Sound.SECRET_AMBIENCE);
+        } catch (RuntimeException error) {
+            session.resume();
+            show(gamePanel);
+            error("The minigame could not be opened. Your shift is still running.", error);
+        }
+    }
+
+    // Builder pattern client: specify the level step by step and finish with build(). Keeping this
+    // separate from navigation also lets tests construct the exact production level headlessly.
+    static SecretLevel createSecretLevel() {
+        return new SecretLevelBuilder().width(2560).player(80).bundle(240)
+                    .destination(new Rectangle(2410, 510, 125, 130))
+                    .platform(new Rectangle(420, 555, 100, 20))
+                    .platform(new Rectangle(1120, 555, 100, 20))
+                    .platform(new Rectangle(1820, 555, 100, 20))
+                    .cover(new Rectangle(345, 500, 165, 140))
+                    .cover(new Rectangle(700, 500, 165, 140))
+                    .cover(new Rectangle(1050, 500, 165, 140))
+                    .cover(new Rectangle(1400, 500, 165, 140))
+                    .cover(new Rectangle(1750, 500, 165, 140))
+                    .cover(new Rectangle(2100, 500, 165, 140))
+                    .witness(530, 850).witness(1120, 1500).witness(1830, 2200).timeLimit(60).build();
+    }
+
+    // SecretPanel calls this after the frozen/glitch success or failure sequence.
+    // Finish this exact attempt; automatic navigation waits for the normal, retryable save.
+    private void finishSecret(boolean won) {
+        if (session == null || session.finished() || current != secretPanel) return;
+        // Despite the field name, this is the same night: a secret does not complete/unlock a shift.
+        nextNightAfterSecret = session.night();
+        if (won) session.completeSecret(); else session.failSecret();
+        finishShift();
     }
 
     // Release held controls before pausing so the flashlight cannot remain stuck on after resume.
@@ -261,7 +317,7 @@ public final class Application implements Navigation {
         pendingRun = session.result();
         pendingProfile = activeProfile;
         pendingSaved = false;
-        audio.ambience(Sound.HUM);
+        if (nextNightAfterSecret == 0) audio.ambience(Sound.HUM);
         if (pendingRun.outcome() == Outcome.COMPLETED) audio.play(Sound.COMPLETE);
         else if (pendingRun.outcome() == Outcome.POWER_OUT) audio.play(Sound.POWER_DOWN);
         resultPanel = new ResultPanel(assets, this, pendingRun, this::savePendingRun);
@@ -273,7 +329,8 @@ public final class Application implements Navigation {
                 show(resultPanel);
                 audio.ambience(Sound.HUM);
             }));
-        } else show(resultPanel);
+        } else if (nextNightAfterSecret == 0) show(resultPanel);
+        // For secret outcomes, keep the frozen minigame visible until the save finishes.
         // For CAUGHT, saving begins while the jumpscare is still playing.
         savePendingRun();
     }
@@ -298,10 +355,19 @@ public final class Application implements Navigation {
             resultPanel.saved();
             if (quitAfterSave) close();
             else if (menuAfterSave) { menuAfterSave = false; showMenu(); }
+            else if (nextNightAfterSecret != 0) {
+                // Wait for both SQLite and the text report before creating the fresh attempt.
+                int next = nextNightAfterSecret;
+                nextNightAfterSecret = 0;
+                secretPanel = null;
+                startNight(next);
+            }
         }, error -> {
             savingRun = false;
             quitAfterSave = menuAfterSave = false;
             resultPanel.failed();
+            // Secret results are normally hidden; show the retry controls if saving failed.
+            if (nextNightAfterSecret != 0) show(resultPanel);
             error("Could not fully save this attempt. Retry from the result screen.\nRetries do not create duplicate records.", error);
         });
     }
@@ -370,6 +436,7 @@ public final class Application implements Navigation {
         }
         if (session != null && !session.finished()) {
             pauseShift();
+            if (current == secretPanel && secretPanel != null) secretPanel.pause();
             int answer = JOptionPane.showConfirmDialog(frame, "Clock out and exit?\nThis attempt will be saved before the game closes.",
                     "End your shift", JOptionPane.YES_NO_OPTION);
             if (answer != JOptionPane.YES_OPTION) return;
