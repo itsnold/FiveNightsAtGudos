@@ -39,7 +39,9 @@ public final class AudioService implements AutoCloseable {
         if (clip != null) return clip;
         // Decorator (Java library): BufferedInputStream wraps an InputStream and adds buffering
         // while remaining an InputStream. AudioSystem then interprets the buffered audio data.
-        try (AudioInputStream stream = AudioSystem.getAudioInputStream(new BufferedInputStream(AssetManager.resource(sound.path())))) {
+        // A null path identifies a synthesized minigame sound; other sounds use bundled WAVs.
+        try (AudioInputStream stream = sound.path() == null ? Chiptune.create(sound)
+                : AudioSystem.getAudioInputStream(new BufferedInputStream(AssetManager.resource(sound.path())))) {
             clip = AudioSystem.getClip();
             clip.open(stream);
             clips.put(sound, clip);
@@ -96,6 +98,12 @@ public final class AudioService implements AutoCloseable {
             applyPan(clip, pan);
             clip.start();
         });
+    }
+
+    /** Stop every scene layer and one-shot, including the minigame's synthesized ambience. */
+    public void stopAll() {
+        requestedLoops = Set.of();
+        executor.execute(() -> clips.values().forEach(Clip::stop));
     }
 
     private void applyPan(Clip clip, float pan) {

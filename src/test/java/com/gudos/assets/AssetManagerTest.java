@@ -41,7 +41,7 @@ class AssetManagerTest {
 
     @Test void everyActiveWavCanBeDecodedWithoutAudioHardware() throws Exception {
         for (Sound sound : Sound.values()) {
-            try (var stream = AudioSystem.getAudioInputStream(new BufferedInputStream(AssetManager.resource(sound.path())))) {
+            try (var stream = sound.path() == null ? com.gudos.audio.Chiptune.create(sound) : AudioSystem.getAudioInputStream(new BufferedInputStream(AssetManager.resource(sound.path())))) {
                 assertTrue(stream.getFrameLength() > 0, sound.name());
                 assertTrue(stream.getFormat().getSampleRate() > 0, sound.name());
             }
@@ -71,6 +71,18 @@ class AssetManagerTest {
                 }
                 assertTrue(peak >= 4000, sound.name() + " must not be a silent or near-silent extract");
             }
+        }
+    }
+
+    @Test void secretAmbienceIsAnEightSecondSeamlessSynthesizedLoop() throws Exception {
+        try (var stream = com.gudos.audio.Chiptune.create(Sound.SECRET_AMBIENCE)) {
+            assertEquals((long) stream.getFormat().getSampleRate() * 8, stream.getFrameLength());
+            byte[] samples = stream.readAllBytes();
+            assertEquals(0, samples[0]);
+            assertEquals(0, samples[samples.length - 1]);
+            boolean audible = false;
+            for (byte sample : samples) if (sample != 0) { audible = true; break; }
+            assertTrue(audible);
         }
     }
 

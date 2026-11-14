@@ -24,6 +24,15 @@ public final class PanoramaRenderer {
     private double span;
     private int lastYaw = Integer.MIN_VALUE;
 
+    /**
+     * Source pixel displayed at a projected output position after render(). The paper's hitbox
+     * lives in the source image, so this reverse lookup keeps clicks aligned during camera sweeps.
+     */
+    public java.awt.Point sourcePoint(int x, int y) {
+        if (lastSource == null || x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return null;
+        return new java.awt.Point(sourceColumns[x], sourceRows[y * WIDTH + x] / lastSource.getWidth());
+    }
+
     public BufferedImage render(BufferedImage source, double pan) {
         if (source == null || !Double.isFinite(pan)) throw new IllegalArgumentException("Invalid panorama");
         // Quantize the view to 2049 positions; unchanged source/view pairs can reuse the last output.

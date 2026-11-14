@@ -1,6 +1,6 @@
 package com.gudos.audio;
 
-/** Named sound cues map to bundled WAV paths and individual gains relative to master volume. */
+/** Named cues have gains relative to master volume; a null path means Chiptune synthesizes them. */
 public enum Sound {
     MENU_MUSIC("music/menu-darkness.wav", 0.65f),
     MENU_STATIC("effects/menu-static.wav", 0.22f),
@@ -31,12 +31,15 @@ public enum Sound {
     GUDO_WHISPER("effects/entrance-whisper.wav", 0.30f),
     GUDO_RUSH("effects/attack-rush.wav", 0.44f),
     GUDO_RETREAT("effects/retreat-fast.wav", 0.34f),
-    JUMPSCARE("effects/caught-scream2.wav", 0.40f);
+    JUMPSCARE("effects/caught-scream2.wav", 0.40f),
+    SECRET_AMBIENCE(null, 0.20f),
+    SECRET_JUMP(null, 0.35f),
+    SECRET_PICKUP(null, 0.35f);
 
     private final String path;
     private final float gain;
 
-    Sound(String path, float gain) { this.path = "/audio/" + path; this.gain = gain; }
+    Sound(String path, float gain) { this.path = path == null ? null : "/audio/" + path; this.gain = gain; }
     public String path() { return path; }
     public float gain() { return gain; }
 }

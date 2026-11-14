@@ -77,6 +77,9 @@ public final class GameSession {
 
     // Pausing preserves the shift in memory; abandoning ends it and produces a result.
     public void abandon() { finish(Outcome.ABANDONED); }
+    // Secret outcomes close this attempt without marking the night as normally survived.
+    public void completeSecret() { finish(Outcome.MINIGAME_COMPLETED); }
+    public void failSecret() { finish(Outcome.MINIGAME_FAILED); }
     public void pause() { if (!finished()) { paused = true; light = false; } }
     public void resume() { if (!finished()) paused = false; }
 

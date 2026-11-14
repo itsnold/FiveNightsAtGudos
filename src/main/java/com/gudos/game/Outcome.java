@@ -2,7 +2,7 @@ package com.gudos.game;
 
 /** Stored enum names remain stable in SQLite; labels are the player-facing descriptions. */
 public enum Outcome {
-    COMPLETED("Completed"), POWER_OUT("Power failure"), ABANDONED("Left shift"), CAUGHT("Caught by Sir Gudo");
+    COMPLETED("Completed"), POWER_OUT("Power failure"), ABANDONED("Left shift"), CAUGHT("Caught by Sir Gudo"), MINIGAME_FAILED("Secret failed"), MINIGAME_COMPLETED("Secret completed");
 
     private final String label;
 
