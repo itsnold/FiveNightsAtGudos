@@ -20,3 +20,19 @@ Font file is bundled unmodified.
 Downloaded for this project on 22 October 2026.
 These licenses apply to these downloaded assets, not to the separately supplied
 carinderia backgrounds and FNAF audio. See docs/assets/asset-manifest.md.
+
+Supplied audio pack / additional extracts (14 November 2026)
+Source: PC _ Computer - Five Nights at Freddy's - Miscellaneous - Sound Effects,
+FNAF1 sound, supplied with this project. Rights remain with the respective owners.
+No redistribution license accompanied the pack; this provenance is not permission.
+Original archive files are retained under asset-sources/audio/.
+Additional active sources: ambience2.wav; ColdPresc B.wav; static.wav;
+Vocals_Breaths_S_35972008.wav; COMPUTER_DIGITAL_L2076505.wav;
+garble1.wav; garble2.wav; garble3.wav;
+OVEN-DRA_1_GEN-HDF18119.wav; OVEN-DRA_2_GEN-HDF18120.wav; deep steps.wav;
+knock2.wav; DOOR_POUNDING_ME_D0291401.wav; whispering2.wav;
+running fast3.wav; XSCREAM2.wav.
+Adaptations: trimmed, faded, peak-normalized to -3 dBFS, exported as
+22.05 kHz / 16-bit mono PCM. Runtime gain and panning applied by Java Sound.
+Source paths, trim offsets and durations: tools/prepare-source-audio.ps1.
+Runtime cue mapping: docs/assets/entrance-and-audio.md.

@@ -3,7 +3,7 @@ package com.gudos.game;
 /** Room identifiers shared by gameplay, camera controls, and the scene-image manifest. */
 public enum Scene {
     OFFICE("office", "Security office", 0),
-    CAM_01("cam01", "Dining area", 1),
+    CAM_01("cam01", "Front entrance", 1),
     CAM_02("cam02", "Serving counter", 2),
     CAM_03("cam03", "Kitchen", 3),
     CAM_04("cam04", "Stockroom", 4),

@@ -20,6 +20,8 @@ import java.util.function.Supplier;
 
 /** The reference-style HUD is deliberately sparse: clock, power, usage, monitor. */
 public final class GamePanel extends ScenePanel {
+    private static final double GARBLE_SECONDS = 2;
+    private static final Sound[] GARBLES = {Sound.GARBLE_1, Sound.GARBLE_2, Sound.GARBLE_3};
     private final GameSession session;
     private final AssetManager assets;
     // Separate renderers keep their own reusable output images, allowing clean/occupied views to blend.
@@ -48,6 +50,14 @@ public final class GamePanel extends ScenePanel {
     private Scene lastGudoLocation;
     private int lastRepelled;
     private double retreatNotice;
+    private Scene garbledCamera;
+    private double garbleUntil;
+    private Sound garbleSound;
+    private int garbleCount;
+    private boolean rushPlayed;
+    private boolean lowPowerPlayed;
+    private int roomNoiseIndex;
+    private double nextRoomNoise = 31;
 
     public GamePanel(GameSession session, AssetManager assets, Supplier<Settings> settings,
                      Consumer<Sound> sound, Runnable pause) {
@@ -117,8 +127,19 @@ public final class GamePanel extends ScenePanel {
 
     public double officePan() { return pan; }
 
+    /** An arrival/departure affects only the feed watched at that moment, for two active shift seconds. */
+    public Sound cameraGarbleSound() {
+        return !session.paused() && !session.finished() && session.monitorOpen()
+                && Scene.camera(session.camera()) == garbledCamera && session.elapsed() < garbleUntil
+                ? garbleSound : null;
+    }
+
     // Either input can hold the light; GameSession still enforces monitor/pause restrictions.
-    private void updateLight() { session.setLight(keyboardLight || mouseLight); }
+    private void updateLight() {
+        boolean before = session.lightOn();
+        session.setLight(keyboardLight || mouseLight);
+        if (before != session.lightOn()) sound.accept(session.lightOn() ? Sound.FLASHLIGHT_ON : Sound.FLASHLIGHT_OFF);
+    }
 
     // Request the model change first, then play feedback only if it actually happened.
     private void toggleMonitor() {
@@ -178,10 +199,36 @@ public final class GamePanel extends ScenePanel {
             Scene location = session.gudo().location();
             // Compare successive model states so footsteps/warnings play once per location change.
             if (location != lastGudoLocation) {
-                if (session.gudo().atOffice()) sound.accept(Sound.GUDO_WARNING);
-                else if (location != null) sound.accept(Sound.GUDO_STEP);
-                if (session.monitorOpen()) transition = 0.20;
+                rushPlayed = false;
+                // All camera/office moves use the same deep footsteps. A successful retreat has its own run cue.
+                if (location != null) sound.accept(Sound.GUDO_STEP);
+                if (session.gudo().atOffice()) {
+                    sound.accept(switch (session.gudo().approach()) {
+                        case LEFT -> Sound.GUDO_WARNING;
+                        case RIGHT -> Sound.GUDO_POUND;
+                        case FRONT -> Sound.GUDO_WHISPER;
+                    });
+                }
+                // Watching him enter or leave a feed disrupts that feed; unrelated cameras stay clear.
+                Scene watched = Scene.camera(session.camera());
+                if (session.monitorOpen() && (lastGudoLocation == watched || location == watched)) {
+                    garbledCamera = watched;
+                    garbleUntil = session.elapsed() + GARBLE_SECONDS;
+                    garbleSound = GARBLES[garbleCount++ % GARBLES.length];
+                }
                 lastGudoLocation = location;
+            }
+            if (session.gudo().atOffice() && session.gudo().attackRemaining() <= 3 && !rushPlayed) {
+                rushPlayed = true;
+                sound.accept(Sound.GUDO_RUSH);
+            }
+            if (session.power() <= 20 && !lowPowerPlayed) {
+                lowPowerPlayed = true;
+                sound.accept(Sound.LOW_POWER);
+            }
+            if (session.elapsed() >= nextRoomNoise && !session.gudo().atOffice()) {
+                sound.accept(roomNoiseIndex++ % 2 == 0 ? Sound.METAL_CREAK : Sound.METAL_RATTLE);
+                nextRoomNoise = session.elapsed() + 33 + roomNoiseIndex % 3 * 7;
             }
             if (session.gudo().repelled() != lastRepelled) {
                 lastRepelled = session.gudo().repelled();
@@ -224,16 +271,27 @@ public final class GamePanel extends ScenePanel {
     // Camera movement uses the session clock, not the mouse or time spent watching this feed.
     private void renderCamera(Graphics2D g) {
         Scene scene = Scene.camera(session.camera());
-        double sweep = CameraMotion.pan(scene, session.elapsed());
-        g.drawImage(cameraProjection.render(assets.scene(scene, session.sceneState(scene)), sweep), 0, 0, WIDTH, HEIGHT, null);
-        g.setColor(new Color(0, 0, 0, 32));
-        g.fillRect(0, 0, WIDTH, HEIGHT);
-        Theme.vignette(g, 205);
-        VhsOverlay.paint(g, assets, age, 0.25f, settings.get().reducedEffects());
-        if (transition > 0 && !settings.get().reducedEffects()) {
-            g.setColor(new Color(0, 0, 0, 115));
+        if (cameraGarbleSound() != null) {
+            // Fully obscure the changed room, including with reduced visual effects enabled.
+            g.setColor(new Color(15, 17, 18));
             g.fillRect(0, 0, WIDTH, HEIGHT);
-            VhsOverlay.paint(g, assets, age * 3, 0.85f, false);
+            if (settings.get().reducedEffects()) {
+                Theme.text(g, "SIGNAL LOST", 72, 280, Theme.pixel(42), Theme.MUTED);
+            } else {
+                VhsOverlay.paint(g, assets, session.elapsed() * 3, 1f, false);
+            }
+        } else {
+            double sweep = CameraMotion.pan(scene, session.elapsed());
+            g.drawImage(cameraProjection.render(assets.scene(scene, session.sceneState(scene)), sweep), 0, 0, WIDTH, HEIGHT, null);
+            g.setColor(new Color(0, 0, 0, 32));
+            g.fillRect(0, 0, WIDTH, HEIGHT);
+            Theme.vignette(g, 205);
+            VhsOverlay.paint(g, assets, age, 0.25f, settings.get().reducedEffects());
+            if (transition > 0 && !settings.get().reducedEffects()) {
+                g.setColor(new Color(0, 0, 0, 115));
+                g.fillRect(0, 0, WIDTH, HEIGHT);
+                VhsOverlay.paint(g, assets, age * 3, 0.85f, false);
+            }
         }
         shadeHud(g);
         g.setColor(Color.WHITE);
@@ -253,7 +311,7 @@ public final class GamePanel extends ScenePanel {
         g.fillRect(845, 349, 377, 290);
         g.setColor(Color.WHITE);
         g.setStroke(new BasicStroke(2));
-        g.drawRect(974, 360, 102, 79); // Dining room
+        g.drawRect(974, 360, 102, 79); // Exterior front entrance
         g.drawRect(856, 440, 108, 55); // Counter
         g.drawRect(856, 502, 108, 55); // Kitchen
         g.drawRect(856, 564, 108, 67); // Stockroom

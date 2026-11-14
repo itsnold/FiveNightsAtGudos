@@ -11,6 +11,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,8 +28,9 @@ public final class AudioService implements AutoCloseable {
     private final Map<Sound, Clip> clips = new EnumMap<>(Sound.class);
     private final Set<Sound> unavailable = EnumSet.noneOf(Sound.class);
     private volatile int volume;
+    private Set<Sound> requestedLoops = Set.of();
 
-    public AudioService(int volume) { this.volume = volume; }
+    public AudioService(int volume) { this.volume = Math.max(0, Math.min(100, volume)); }
 
     // Find an already-open clip, or decode its bundled resource the first time it is requested.
     private Clip clip(Sound sound) {
@@ -71,53 +73,92 @@ public final class AudioService implements AutoCloseable {
 
     // Play a one-shot cue from its beginning; repeated requests restart that sound's cached clip.
     public void play(Sound sound) {
+        play(sound, 0);
+    }
+
+    /** Position encounter cues toward the approach; UI feedback stays centered. */
+    public void play(Sound sound, float pan) {
         executor.execute(() -> {
             if (volume == 0) return;
+            if (sound == Sound.GUDO_RETREAT) {
+                // The retreat replaces any still-playing approach/attack cue, including the long step sequence.
+                for (Sound threat : new Sound[]{Sound.GUDO_STEP, Sound.GUDO_WARNING, Sound.GUDO_POUND,
+                        Sound.GUDO_WHISPER, Sound.GUDO_RUSH}) {
+                    Clip old = clips.get(threat);
+                    if (old != null) old.stop();
+                }
+            }
             Clip clip = clip(sound);
             if (clip == null) return;
             clip.stop();
             clip.setFramePosition(0);
             applyGain(sound, clip);
+            applyPan(clip, pan);
             clip.start();
         });
     }
 
-    // Replace the current background loops. Null stops them without starting a replacement.
-    public void ambience(Sound sound) {
+    private void applyPan(Clip clip, float pan) {
+        FloatControl.Type type = clip.isControlSupported(FloatControl.Type.PAN)
+                ? FloatControl.Type.PAN : FloatControl.Type.BALANCE;
+        if (clip.isControlSupported(type)) {
+            FloatControl control = (FloatControl) clip.getControl(type);
+            control.setValue(Math.max(control.getMinimum(), Math.min(control.getMaximum(), pan)));
+        }
+    }
+
+    /** Replace only changed loops, preserving playback positions of shared layers. */
+    public void ambience(Sound sound, Sound... layers) {
+        Set<Sound> next = EnumSet.noneOf(Sound.class);
+        if (sound != null) next.add(sound);
+        next.addAll(Arrays.asList(layers));
+        if (next.equals(requestedLoops)) return;
+        Set<Sound> previous = requestedLoops;
+        requestedLoops = Set.copyOf(next);
         executor.execute(() -> {
-            for (Sound loop : new Sound[]{Sound.HUM, Sound.FAN, Sound.MENU_MUSIC, Sound.MENU_STATIC}) {
+            for (Sound loop : previous) {
+                if (next.contains(loop)) continue;
                 Clip old = clips.get(loop);
                 if (old != null) old.stop();
             }
-            if (sound == null) return;
-            Clip clip = clip(sound);
-            if (clip != null) {
-                clip.setFramePosition(0);
-                applyGain(sound, clip);
-                clip.loop(Clip.LOOP_CONTINUOUSLY);
+            for (Sound loop : next) {
+                if (previous.contains(loop)) continue;
+                Clip clip = clip(loop);
+                if (clip != null) {
+                    clip.setFramePosition(0);
+                    applyGain(loop, clip);
+                    applyPan(clip, 0);
+                    clip.loop(Clip.LOOP_CONTINUOUSLY);
+                }
             }
         });
     }
 
-    /** Decode both tracks first, then start them together; stop both on entering a shift. */
-    public void menuMusic() {
+    /** Stop transient sounds on pause, scene exit and before the result sting. */
+    public void stopEffects() {
+        Set<Sound> loops = requestedLoops;
         executor.execute(() -> {
-            Clip music = clip(Sound.MENU_MUSIC);
-            Clip staticNoise = clip(Sound.MENU_STATIC);
-            for (Sound loop : new Sound[]{Sound.HUM, Sound.FAN, Sound.MENU_MUSIC, Sound.MENU_STATIC}) {
-                Clip old = clips.get(loop);
-                if (old != null) old.stop();
-            }
-            if (music != null) {
-                music.setFramePosition(0);
-                applyGain(Sound.MENU_MUSIC, music);
-            }
-            if (staticNoise != null) {
-                staticNoise.setFramePosition(0);
-                applyGain(Sound.MENU_STATIC, staticNoise);
-            }
-            if (music != null) music.loop(Clip.LOOP_CONTINUOUSLY);
-            if (staticNoise != null) staticNoise.loop(Clip.LOOP_CONTINUOUSLY);
+            clips.forEach((sound, clip) -> { if (!loops.contains(sound)) clip.stop(); });
+        });
+    }
+
+    public void menuMusic() { ambience(Sound.MENU_MUSIC, Sound.MENU_STATIC); }
+
+    /** Breathing is local to an office arrival; hiss belongs only to the raised monitor. */
+    public void gameplay(boolean monitor, boolean atOffice, boolean tense, float approachPan, Sound cameraGarble) {
+        Set<Sound> loops = EnumSet.of(Sound.FAN, Sound.ROOM_TONE);
+        if (monitor) loops.add(Sound.CAMERA_HISS);
+        // Both layers belong to the currently viewed disrupted feed; looking away removes both immediately.
+        if (monitor && cameraGarble != null) {
+            loops.add(cameraGarble);
+            loops.add(Sound.CAMERA_DIGITAL);
+        }
+        if (atOffice) loops.add(Sound.GUDO_BREATH);
+        if (tense) loops.add(Sound.TENSION);
+        ambience(Sound.FAN, loops.stream().filter(sound -> sound != Sound.FAN).toArray(Sound[]::new));
+        if (atOffice) executor.execute(() -> {
+            Clip breath = clips.get(Sound.GUDO_BREATH);
+            if (breath != null) applyPan(breath, approachPan);
         });
     }
 

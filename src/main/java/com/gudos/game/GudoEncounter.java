@@ -6,7 +6,7 @@ public final class GudoEncounter {
     public enum Approach {
         LEFT("left", "LEFT / SERVICE DOOR", 0.12, new Scene[]{Scene.CAM_04, Scene.CAM_03, Scene.CAM_02}),
         RIGHT("right", "RIGHT / CORRIDOR", 0.88, new Scene[]{Scene.CAM_06, Scene.CAM_05}),
-        FRONT("front", "CENTER / DINING ROOM", 0.50, new Scene[]{Scene.CAM_01});
+        FRONT("front", "CENTER / FRONT ENTRANCE", 0.50, new Scene[]{Scene.CAM_01});
 
         private final String state;
         private final String label;

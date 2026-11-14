@@ -1,6 +1,7 @@
 package com.gudos.ui;
 
 import com.gudos.assets.AssetManager;
+import com.gudos.audio.Sound;
 import com.gudos.game.GameSession;
 import com.gudos.game.Scene;
 import com.gudos.persistence.AppPaths;
@@ -16,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -187,6 +189,149 @@ class UiRenderTest {
             view.tick(2);
             assertTrue(view.officePan() > 0.9);
             view.releaseControls();
+        });
+    }
+
+    @Test void soundsFollowAcceptedInputsAndViewingGudoDoesNotPlayASightingSting() throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            GameSession game = new GameSession(1);
+            List<Sound> cues = new ArrayList<>();
+            GamePanel view = new GamePanel(game, assets, () -> Settings.DEFAULT, cues::add, () -> { });
+            action(view, "light-on");
+            action(view, "light-on");
+            action(view, "light-off");
+            assertEquals(List.of(Sound.FLASHLIGHT_ON, Sound.FLASHLIGHT_OFF), cues);
+            action(view, "monitor-space");
+            cues.clear();
+            action(view, "light-on");
+            action(view, "light-off");
+            action(view, "camera-1");
+            assertTrue(cues.isEmpty(), "Blocked light and reselecting the current feed must be silent");
+            game.update(18);
+            view.tick(0.1);
+            assertEquals(List.of(Sound.GUDO_STEP), cues);
+            cues.clear();
+            action(view, "camera-4");
+            view.tick(0.1);
+            assertEquals(List.of(Sound.CAMERA_SWITCH), cues);
+            assertNull(view.cameraGarbleSound());
+            for (int repeat = 0; repeat < 3; repeat++) {
+                cues.clear();
+                action(view, "camera-3");
+                view.tick(0.1);
+                action(view, "camera-4");
+                view.tick(0.1);
+                assertEquals(List.of(Sound.CAMERA_SWITCH, Sound.CAMERA_SWITCH), cues,
+                        "Merely looking at Gudo or returning to his feed must not play a scare or garble cue");
+                assertNull(view.cameraGarbleSound());
+            }
+            game.pause();
+            cues.clear();
+            view.tick(60);
+            assertTrue(cues.isEmpty(), "Paused shifts must not schedule encounter or room cues");
+        });
+    }
+
+    @Test void watchedDepartureDisruptsOnlyThatFeedForTwoActiveSeconds() throws Exception {
+        Path output = Path.of("target", "ui-preview");
+        Files.createDirectories(output);
+        SwingUtilities.invokeAndWait(() -> {
+            try {
+                GameSession game = new GameSession(1);
+                Settings[] preferences = {Settings.DEFAULT};
+                GamePanel view = new GamePanel(game, assets, () -> preferences[0], cue -> { }, () -> { });
+                view.tick(3); // Finish the panel's night-intro overlay before inspecting the actual feed.
+                game.toggleMonitor();
+                game.selectCamera(4);
+                game.update(18);
+                view.tick(0.1);
+                assertNotNull(view.cameraGarbleSound(), "A watched arrival also triggers garble");
+                game.update(11);
+                view.tick(0.1);
+                assertEquals(Scene.CAM_03, game.gudo().location());
+                Sound garble = view.cameraGarbleSound();
+                assertNotNull(garble);
+                assertTrue(List.of(Sound.GARBLE_1, Sound.GARBLE_2, Sound.GARBLE_3).contains(garble));
+                render(view, output.resolve("camera-garbled.png"), 1280, 720);
+                assertNotEquals(Color.BLACK.getRGB(),
+                        ImageIO.read(output.resolve("camera-garbled.png").toFile()).getRGB(400, 400));
+                preferences[0] = new Settings("Night Guard", 55, true, false);
+                Path reduced = output.resolve("camera-garbled-reduced.png");
+                render(view, reduced, 1280, 720);
+                assertEquals(new Color(15, 17, 18).getRGB(), ImageIO.read(reduced.toFile()).getRGB(400, 400),
+                        "Reduced effects must still conceal the room during a lost feed");
+
+                game.update(0.75);
+                view.tick(0.75);
+                game.selectCamera(3);
+                assertNull(view.cameraGarbleSound(), "The destination/other feeds remain clear");
+                game.selectCamera(4);
+                assertSame(garble, view.cameraGarbleSound(), "Returning must not start another variant/timer");
+                game.toggleMonitor();
+                assertNull(view.cameraGarbleSound(), "The office must not play garble audio");
+                game.toggleMonitor();
+                assertSame(garble, view.cameraGarbleSound());
+                game.pause();
+                game.update(60);
+                view.tick(60);
+                assertNull(view.cameraGarbleSound(), "Paused audio is silent");
+                game.resume();
+                assertSame(garble, view.cameraGarbleSound(), "Pause must preserve the remaining duration");
+                game.update(1.249);
+                view.tick(1.249);
+                assertSame(garble, view.cameraGarbleSound(), "Still disrupted just before two seconds");
+                game.update(0.002);
+                view.tick(0.002);
+                assertNull(view.cameraGarbleSound(), "Clear after two seconds, without camera switching extending it");
+            } catch (Exception error) { throw new RuntimeException(error); }
+        });
+    }
+
+    @Test void watchedArrivalsGarbleButUnwatchedMovesStayClearAndEveryMoveHasDeepSteps() throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            // Monitor down, watching an unrelated feed, and selecting each destination before the move.
+            for (int mode = 0; mode < 3; mode++) {
+                GameSession game = new GameSession(1);
+                List<Sound> cues = new ArrayList<>();
+                GamePanel view = new GamePanel(game, assets, () -> Settings.DEFAULT, cues::add, () -> { });
+                if (mode != 0) { game.toggleMonitor(); game.selectCamera(6); }
+                int[] destinations = {4, 3, 2, 1};
+                for (int step = 0; step < 4; step++) {
+                    if (mode == 2) game.selectCamera(destinations[step]);
+                    game.update(step == 0 ? 18 : 11);
+                    view.tick(0.1);
+                    if (mode == 2 && step < 3) {
+                        assertNotNull(view.cameraGarbleSound(), "Watching him enter a camera must garble it");
+                    } else {
+                        assertNull(view.cameraGarbleSound(), "Unwatched move in mode " + mode);
+                    }
+                    assertEquals(step + 1, cues.stream().filter(cue -> cue == Sound.GUDO_STEP).count());
+                }
+                assertTrue(game.gudo().atOffice());
+            }
+        });
+    }
+
+    @Test void arrivalUrgencyAndRetreatSoundsPlayOncePerEncounter() throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            GameSession game = new GameSession(1);
+            List<Sound> cues = new ArrayList<>();
+            GamePanel view = new GamePanel(game, assets, () -> Settings.DEFAULT, cues::add, () -> { });
+            game.update(51);
+            view.tick(0.1);
+            view.tick(0.1);
+            assertEquals(1, cues.stream().filter(cue -> cue == Sound.GUDO_WARNING).count());
+            game.update(6.1);
+            view.tick(0.1);
+            view.tick(0.1);
+            assertEquals(1, cues.stream().filter(cue -> cue == Sound.GUDO_RUSH).count());
+            game.setOfficePan(game.gudo().approach().pan());
+            game.setLight(true);
+            game.update(game.gudo().flashSeconds());
+            view.tick(0.1);
+            view.tick(0.1);
+            assertEquals(1, cues.stream().filter(cue -> cue == Sound.GUDO_RETREAT).count());
+            assertFalse(game.finished());
         });
     }
 

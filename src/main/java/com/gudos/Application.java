@@ -135,6 +135,7 @@ public final class Application implements Navigation {
             current.tick(seconds);
             current.repaint();
         }
+        if (current == gamePanel && session != null && !session.finished()) updateGameAudio();
     }
 
     // Replace the visible panel and reset the frame clock before the new screen receives input.
@@ -151,6 +152,7 @@ public final class Application implements Navigation {
 
     // Clear the previous shift's UI state; saved database progress is kept separately.
     private void showMenu() {
+        audio.stopEffects();
         session = null;
         gamePanel = null;
         pendingRun = null;
@@ -220,9 +222,23 @@ public final class Application implements Navigation {
         activeProfile = settings.playerName();
         session = new GameSession(night);
         // Supply current settings and callbacks, so GamePanel need not own storage or audio services.
-        gamePanel = new GamePanel(session, assets, () -> settings, audio::play, this::pauseShift);
+        gamePanel = new GamePanel(session, assets, () -> settings, sound -> {
+            float pan = switch (sound) {
+                case GUDO_STEP, GUDO_WARNING, GUDO_POUND, GUDO_WHISPER,
+                        GUDO_RUSH -> (float) (session.gudo().approach().pan() * 2 - 1);
+                default -> 0;
+            };
+            audio.play(sound, pan);
+        }, this::pauseShift);
         show(gamePanel);
-        audio.ambience(Sound.FAN);
+        audio.stopEffects();
+        updateGameAudio();
+    }
+
+    private void updateGameAudio() {
+        audio.gameplay(session.monitorOpen(), session.gudo().atOffice(),
+                session.power() <= 25 || session.progress() >= 0.65,
+                (float) (session.gudo().approach().pan() * 2 - 1), gamePanel.cameraGarbleSound());
     }
 
     // Release held controls before pausing so the flashlight cannot remain stuck on after resume.
@@ -231,6 +247,7 @@ public final class Application implements Navigation {
         gamePanel.releaseControls();
         session.pause();
         show(new PausePanel(assets, this, session));
+        audio.stopEffects();
         audio.ambience(Sound.HUM);
     }
 
@@ -239,7 +256,7 @@ public final class Application implements Navigation {
         if (session == null || session.finished() || busy) return;
         session.resume();
         show(gamePanel);
-        audio.ambience(Sound.FAN);
+        updateGameAudio();
     }
 
     // Confirm an early departure, mark it ABANDONED, and save before returning to the menu.
@@ -261,6 +278,7 @@ public final class Application implements Navigation {
         pendingRun = session.result();
         pendingProfile = activeProfile;
         pendingSaved = false;
+        audio.stopEffects();
         audio.ambience(Sound.HUM);
         if (pendingRun.outcome() == Outcome.COMPLETED) audio.play(Sound.COMPLETE);
         else if (pendingRun.outcome() == Outcome.POWER_OUT) audio.play(Sound.POWER_DOWN);
@@ -270,6 +288,7 @@ public final class Application implements Navigation {
             // Facade: one request hides clip loading, volume adjustment, and playback details.
             audio.play(Sound.JUMPSCARE);
             show(new JumpscarePanel(assets, settings.reducedEffects(), () -> {
+                audio.stopEffects();
                 show(resultPanel);
                 audio.ambience(Sound.HUM);
             }));

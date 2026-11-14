@@ -40,7 +40,7 @@ public final class InfoPanel extends BackdropPanel {
         g.drawLine(676, 241, 676, 593);
         String[] headings = {"01  FOLLOW HIS ROUTE", "02  HOLD THE LIGHT", "03  SURVIVE UNTIL 6 AM"};
         String[] paragraphs = {
-                "Sir Gudo approaches via 04 > 03 > 02 (left), 06 > 05 (right), or 01 (center). Watch CCTV to see where he is heading.",
+                "Sir Gudo approaches via 04 > 03 > 02 (left), 06 > 05 (right), or the front entrance on 01 (center). Watch CCTV to track him.",
                 "When footsteps reach the office, lower the monitor. Face his doorway with A/D, then hold F until he disappears. Looking away lets him recover.",
                 "Last six minutes. Save power between attacks. Later nights give less time to react. A completed shift unlocks the next night."
         };
@@ -64,6 +64,6 @@ public final class InfoPanel extends BackdropPanel {
         Theme.paragraph(g, "VT323 / The VT323 Project Authors\nSIL Open Font License 1.1\nFull credits and licenses bundled in licenses/.", 678, 434, 510, 25, Theme.pixel(23), Theme.MUTED);
         Theme.text(g, "Audio", 678, 539, Theme.pixel(31), Color.WHITE);
         Theme.paragraph(g, "Supplied Five Nights at Freddy's sound pack.\nVerify reuse permissions before distribution.", 678, 574, 510, 25, Theme.pixel(23), Theme.MUTED);
-        Theme.text(g, "Sir Gudo states: GPT Image edits of supplied art. Encounter sounds: original synthesized audio.", 82, 655, Theme.pixel(22), Theme.MUTED);
+        Theme.text(g, "Sir Gudo states: GPT Image edits of supplied art. Sound cues adapted from the supplied audio pack.", 82, 655, Theme.pixel(22), Theme.MUTED);
     }
 }
