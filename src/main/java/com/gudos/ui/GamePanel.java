@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/** The reference-style HUD is deliberately sparse: clock, power, usage, monitor. */
+/** The reference-style HUD is deliberately sparse: clock, power, usage, monitor. Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19). */
 /*
  * GamePanel
  *
@@ -43,27 +43,28 @@ import java.util.function.Supplier;
  *
  * Summary: The panel can request a monitor toggle, but the model decides whether it is legal.
  * Sound is played only when an accepted change or encounter transition occurs.
+ * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
  */
 public final class GamePanel extends ScenePanel {
     private static final double GARBLE_SECONDS = 2;
     private static final Sound[] GARBLES = {Sound.GARBLE_1, Sound.GARBLE_2, Sound.GARBLE_3};
     private final GameSession session;
     private final AssetManager assets;
-    // Separate renderers keep their own reusable output images, allowing clean/occupied views to blend.
+    // Separate renderers keep their own reusable output images, allowing clean/occupied views to blend. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     private final PanoramaRenderer officeProjection = new PanoramaRenderer();
     private final PanoramaRenderer occupiedProjection = new PanoramaRenderer();
-    // Match the camera's sweep when translating clicks back to the source-image paper.
+    // Match the camera's sweep when translating clicks back to the source-image paper. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     private final PanoramaRenderer cameraProjection = new PanoramaRenderer();
     private final SceneRenderer cameraRenderer;
     private final SceneRenderer cameraTransitionRenderer;
-    // Callbacks let this screen read current preferences, request a sound, or pause through Application.
+    // Callbacks let this screen read current preferences, request a sound, or pause through Application. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     private final Supplier<Settings> settings;
     private final Consumer<Sound> sound;
     private final Runnable pause;
     private final GameButton monitorButton;
     private final GameButton lightButton;
     private final List<GameButton> cameras = new ArrayList<>();
-    // Track held inputs separately from the simulation; releaseControls clears them on pause/exit.
+    // Track held inputs separately from the simulation; releaseControls clears them on pause/exit. | Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     private boolean leftHeld;
     private boolean rightHeld;
     private boolean keyboardLight;
@@ -94,6 +95,7 @@ public final class GamePanel extends ScenePanel {
      * switching SceneRenderer decorator chains. Create monitor/light/camera Swing controls,
      * press/release keyboard bindings, mouse-edge tracking and the reverse-projected five-click
      * CAM04 secret trigger. Finally synchronize controls to the model.
+     * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     public GamePanel(GameSession session, AssetManager assets, Supplier<Settings> settings,
                      Consumer<Sound> sound, Runnable pause) {
@@ -102,7 +104,7 @@ public final class GamePanel extends ScenePanel {
         this.settings = settings;
         this.sound = sound;
         this.pause = pause;
-        // Our Decorator pattern: the same component interface supports stacked visual effects.
+        // Our Decorator pattern: the same component interface supports stacked visual effects. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
         cameraRenderer = new VhsRendererDecorator(new CameraSceneRenderer(session, assets), assets, 0.25f);
         cameraTransitionRenderer = new VhsRendererDecorator(
                 new DimmedRendererDecorator(cameraRenderer, 115), assets, 0.85f, 3);
@@ -115,21 +117,24 @@ public final class GamePanel extends ScenePanel {
             /*
              * Accept a left press on the light control, mark mouseLight held and pass the combined
              * hold state through updateLight.
+             * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
              */
             @Override public void mousePressed(MouseEvent event) { if (SwingUtilities.isLeftMouseButton(event)) { mouseLight = true; updateLight(); } }
             /*
              * Clear mouseLight on release and recompute accepted light state. Keyboard F may still
              * hold the light independently.
+             * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
              */
             @Override public void mouseReleased(MouseEvent event) { mouseLight = false; updateLight(); }
             /*
              * For the light control, clear mouseLight and update it so dragging away cannot leave
              * light stuck. For the scene, clear pointerInside so an absent pointer does not keep
              * edge-panning.
+             * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
              */
             @Override public void mouseExited(MouseEvent event) { mouseLight = false; updateLight(); }
         });
-        // The six real Swing camera buttons are positioned over the floor-plan drawing.
+        // The six real Swing camera buttons are positioned over the floor-plan drawing. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
         int[][] positions = {{993, 378}, {880, 450}, {880, 510}, {880, 576}, {1125, 450}, {1125, 513}};
         for (int camera = 1; camera <= 6; camera++) {
             int number = camera;
@@ -138,7 +143,7 @@ public final class GamePanel extends ScenePanel {
             cameras.add(place(control, positions[camera - 1][0], positions[camera - 1][1], 64, 42));
             bind("pressed " + camera, "camera-" + camera, () -> selectCamera(number));
         }
-        // Press/release pairs support held movement/light; monitor toggles only once per key press.
+        // Press/release pairs support held movement/light; monitor toggles only once per key press. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
         bind("pressed SPACE", "monitor-space", () -> { if (!spaceHeld) { spaceHeld = true; toggleMonitor(); } });
         bind("released SPACE", "monitor-space-release", () -> spaceHeld = false);
         bind("pressed TAB", "monitor-tab", () -> { if (!tabHeld) { tabHeld = true; toggleMonitor(); } });
@@ -154,16 +159,18 @@ public final class GamePanel extends ScenePanel {
         bind("released D", "right-d-off", () -> rightHeld = false);
         bind("pressed RIGHT", "right-arrow", () -> rightHeld = true);
         bind("released RIGHT", "right-arrow-off", () -> rightHeld = false);
-        // Convert window pixels to the same 1280x720 coordinate system used by the scene.
+        // Convert window pixels to the same 1280x720 coordinate system used by the scene. | Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
         addMouseMotionListener(new MouseAdapter() {
             /*
              * Convert the event point through scenePoint and mark the pointer inside. This aligns
              * mouse-edge pan with letterboxed/resized coordinates.
+             * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
              */
             @Override public void mouseMoved(MouseEvent event) { pointer = scenePoint(event.getPoint()); pointerInside = true; }
             /*
              * Use the same pointer update as mouse movement so dragging still tracks scene
              * coordinates.
+             * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
              */
             @Override public void mouseDragged(MouseEvent event) { mouseMoved(event); }
         });
@@ -172,6 +179,7 @@ public final class GamePanel extends ScenePanel {
              * For the light control, clear mouseLight and update it so dragging away cannot leave
              * light stuck. For the scene, clear pointerInside so an absent pointer does not keep
              * edge-panning.
+             * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
              */
             @Override public void mouseExited(MouseEvent event) { pointerInside = false; }
             /*
@@ -179,17 +187,18 @@ public final class GamePanel extends ScenePanel {
              * click and accept only source fractions x=0.285..0.325 and y=0.24..0.40. The fifth
              * valid paper click resets the counter and invokes secret. Application separately
              * rejects Night 5. Invalid clicks do not increment or reset the count.
+             * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
              */
             @Override public void mouseClicked(MouseEvent event) {
-                // Only left-clicks on the active CAM 04 feed can count toward the hidden trigger.
+                // Only left-clicks on the active CAM 04 feed can count toward the hidden trigger. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
                 if (!SwingUtilities.isLeftMouseButton(event) || !session.monitorOpen() || session.camera() != 4 || session.paused() || session.finished()) return;
                 Point2D p = scenePoint(event.getPoint());
-                // The projection is recomputed at the current sweep, then mapped back to the source image.
+                // The projection is recomputed at the current sweep, then mapped back to the source image. | Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
                 var source = assets.scene(Scene.CAM_04, session.sceneState(Scene.CAM_04));
                 cameraProjection.render(source, CameraMotion.pan(Scene.CAM_04, session.elapsed()));
                 Point pixel = cameraProjection.sourcePoint((int) (p.getX() * PanoramaRenderer.WIDTH / WIDTH), (int) (p.getY() * PanoramaRenderer.HEIGHT / HEIGHT));
-                // The bounds are fractions of the original stockroom image, so the target follows
-                // camera panning and window resizing. Only a click inside the paper increments the count.
+                // The bounds are fractions of the original stockroom image, so the target follows | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
+                // camera panning and window resizing. Only a click inside the paper increments the count. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
                 if (pixel != null && pixel.x >= source.getWidth() * 0.285 && pixel.x <= source.getWidth() * 0.325
                         && pixel.y >= source.getHeight() * 0.24 && pixel.y <= source.getHeight() * 0.40 && ++paperClicks >= 5) {
                     paperClicks = 0;
@@ -200,16 +209,18 @@ public final class GamePanel extends ScenePanel {
         syncControls();
     }
 
-    // Application supplies the navigation callback; this panel does not construct the minigame.
+    // Application supplies the navigation callback; this panel does not construct the minigame. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * Store the Runnable provided by Application. The panel detects a paper interaction; Application
      * alone constructs/navigates/saves the hidden game.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     public void onSecret(Runnable action) { secret = action; }
 
     /*
      * Create a styled GameButton with callback and make it nonfocusable so game keyboard actions
      * stay under scene-level routing.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     private GameButton button(String label, GameButton.Style style, Runnable action) {
         GameButton button = new GameButton(label, style, action);
@@ -217,10 +228,11 @@ public final class GamePanel extends ScenePanel {
         return button;
     }
 
-    // Clear physical input state before switching screens so keys cannot remain logically held.
+    // Clear physical input state before switching screens so keys cannot remain logically held. | Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * Clear all held movement/light/pointer/monitor-key flags and force the model light off. Call
      * before pause, exit or a hidden-screen switch to avoid stuck inputs.
+     * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     public void releaseControls() {
         leftHeld = rightHeld = keyboardLight = mouseLight = pointerInside = spaceHeld = tabHeld = false;
@@ -230,14 +242,16 @@ public final class GamePanel extends ScenePanel {
     /*
      * Expose the current smoothed visual pan; GameSession receives the same value for directional
      * flashlight rules. This differs from the automatic CCTV sweep.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     public double officePan() { return pan; }
 
-    /** An arrival/departure affects only the feed watched at that moment, for two active shift seconds. */
+    /** An arrival/departure affects only the feed watched at that moment, for two active shift seconds. Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19). */
     /*
      * Return the selected feed disruption cue only for an active unpaused monitor, the matching
      * garbledCamera, and elapsed before garbleUntil. Switching away silences it; returning before
      * expiry uses the original deadline/variant.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     public Sound cameraGarbleSound() {
         return !session.paused() && !session.finished() && session.monitorOpen()
@@ -245,11 +259,12 @@ public final class GamePanel extends ScenePanel {
                 ? garbleSound : null;
     }
 
-    // Either input can hold the light; GameSession still enforces monitor/pause restrictions.
+    // Either input can hold the light; GameSession still enforces monitor/pause restrictions. | Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * Combine keyboard and mouse hold state, ask GameSession to enforce restrictions, then emit
      * ON/OFF only if the accepted model state changed. A blocked press must not produce misleading
      * audio.
+     * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     private void updateLight() {
         boolean before = session.lightOn();
@@ -257,11 +272,12 @@ public final class GamePanel extends ScenePanel {
         if (before != session.lightOn()) sound.accept(session.lightOn() ? Sound.FLASHLIGHT_ON : Sound.FLASHLIGHT_OFF);
     }
 
-    // Request the model change first, then play feedback only if it actually happened.
+    // Request the model change first, then play feedback only if it actually happened. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * Clear physical light flags, ask the model to toggle, and if accepted set a 0.20-second visual
      * transition plus open/close cue. Then synchronize button labels/visibility. GameSession is
      * still the rule authority.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     private void toggleMonitor() {
         boolean before = session.monitorOpen();
@@ -274,11 +290,12 @@ public final class GamePanel extends ScenePanel {
         syncControls();
     }
 
-    // Camera selection is accepted by the model only while the monitor is open.
+    // Camera selection is accepted by the model only while the monitor is open. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * Remember the previous camera, request a validated model selection and emit a 0.17-second
      * transition/camera-switch cue only if it actually changed. Reselecting the current feed stays
      * silent.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     private void selectCamera(int number) {
         int before = session.camera();
@@ -290,11 +307,12 @@ public final class GamePanel extends ScenePanel {
         syncControls();
     }
 
-    // Mirror the model in button visibility, selection, and labels; these controls do not own game state.
+    // Mirror the model in button visibility, selection, and labels; these controls do not own game state. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * Mirror monitor/camera/light state into actual buttons: show camera buttons only with monitor
      * up, show light only in office, update selected states and accessible monitor label. These
      * controls display the state rather than own it.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     private void syncControls() {
         for (int i = 0; i < cameras.size(); i++) {
@@ -310,12 +328,13 @@ public final class GamePanel extends ScenePanel {
         }
     }
 
-    // Update visual/input state after Application has advanced GameSession for this frame.
+    // Update visual/input state after Application has advanced GameSession for this frame. | Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * After the model update, decrease transitions, derive office direction from keys or mouse
      * edges, ease pan using 1-exp(-9*dt) and send it back to the model. Compare encounter
      * location/repelled counters for one-time footsteps/arrival/retreat cues, mark watched-feed
      * garble for two active seconds, and schedule urgency, low-power and room creak/rattle cues.
+     * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     @Override public void tick(double seconds) {
         super.tick(seconds);
@@ -326,7 +345,7 @@ public final class GamePanel extends ScenePanel {
                 if (pointer.getX() < 340) direction = -(340 - pointer.getX()) / 340;
                 else if (pointer.getX() > 940) direction = (pointer.getX() - 940) / 340;
             }
-            // Ease toward the requested direction rather than snapping the office image sideways.
+            // Ease toward the requested direction rather than snapping the office image sideways. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
             targetPan = Math.max(0, Math.min(1, targetPan + direction * seconds * 0.72));
             pan += (targetPan - pan) * (1 - Math.exp(-seconds * 9));
             session.setOfficePan(pan);
@@ -334,10 +353,10 @@ public final class GamePanel extends ScenePanel {
         if (!session.paused() && !session.finished()) {
             retreatNotice = Math.max(0, retreatNotice - seconds);
             Scene location = session.gudo().location();
-            // Compare successive model states so footsteps/warnings play once per location change.
+            // Compare successive model states so footsteps/warnings play once per location change. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
             if (location != lastGudoLocation) {
                 rushPlayed = false;
-                // All camera/office moves use the same deep footsteps. A successful retreat has its own run cue.
+                // All camera/office moves use the same deep footsteps. A successful retreat has its own run cue. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
                 if (location != null) sound.accept(Sound.GUDO_STEP);
                 if (session.gudo().atOffice()) {
                     sound.accept(switch (session.gudo().approach()) {
@@ -346,7 +365,7 @@ public final class GamePanel extends ScenePanel {
                         case FRONT -> Sound.GUDO_WHISPER;
                     });
                 }
-                // Watching him enter or leave a feed disrupts that feed; unrelated cameras stay clear.
+                // Watching him enter or leave a feed disrupts that feed; unrelated cameras stay clear. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
                 Scene watched = Scene.camera(session.camera());
                 if (session.monitorOpen() && (lastGudoLocation == watched || location == watched)) {
                     garbledCamera = watched;
@@ -376,10 +395,11 @@ public final class GamePanel extends ScenePanel {
         syncControls();
     }
 
-    // Draw the current world view first, then the clock, power, and encounter messages on top.
+    // Draw the current world view first, then the clock, power, and encounter messages on top. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * Draw either office or CCTV based on model monitorOpen, then draw HUD. Rendering reads model
      * state; it does not advance encounter timers.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     @Override protected void render(Graphics2D g) {
         if (session.monitorOpen()) renderCamera(g);
@@ -387,11 +407,12 @@ public final class GamePanel extends ScenePanel {
         renderHud(g);
     }
 
-    // Flashlight exposure blends the occupied panorama toward the clean room as Gudo retreats.
+    // Flashlight exposure blends the occupied panorama toward the clean room as Gudo retreats. | Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * Use clean and occupied projection buffers at the same pan. During defense blend occupied
      * alpha=1-fade over clean, then draw light/tint/vignette/HUD shading. Two renderer buffers
      * prevent the second render from overwriting the first blend input.
+     * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     private void renderOffice(Graphics2D g) {
         double fade = session.gudo().fadeProgress();
@@ -414,16 +435,17 @@ public final class GamePanel extends ScenePanel {
         shadeHud(g);
     }
 
-    // Camera movement uses the session clock, not the mouse or time spent watching this feed.
+    // Camera movement uses the session clock, not the mouse or time spent watching this feed. | Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * If the watched feed is disrupted, fully obscure it with animated noise or a still SIGNAL LOST
      * screen in reduced mode. Otherwise choose normal or switching Decorator chain. Draw flat CCTV
      * border/record dot/room label/map on top. It never moves the model based on pixels.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     private void renderCamera(Graphics2D g) {
         Scene scene = Scene.camera(session.camera());
         if (cameraGarbleSound() != null) {
-            // Fully obscure the changed room, including with reduced visual effects enabled.
+            // Fully obscure the changed room, including with reduced visual effects enabled. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
             g.setColor(new Color(15, 17, 18));
             g.fillRect(0, 0, WIDTH, HEIGHT);
             if (settings.get().reducedEffects()) {
@@ -448,25 +470,26 @@ public final class GamePanel extends ScenePanel {
         renderMap(g);
     }
 
-    // Draw the static floor plan; interactive camera controls are separate Swing buttons above it.
+    // Draw the static floor plan; interactive camera controls are separate Swing buttons above it. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * Draw the room rectangles and connecting corridors as a floor-plan schematic. The interactive
      * numbered camera controls are separate real Swing buttons, not click logic embedded in the
      * drawn lines.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     private void renderMap(Graphics2D g) {
         g.setColor(new Color(0, 0, 0, 80));
         g.fillRect(845, 349, 377, 290);
         g.setColor(Color.WHITE);
         g.setStroke(new BasicStroke(2));
-        g.drawRect(974, 360, 102, 79); // Exterior front entrance
-        g.drawRect(856, 440, 108, 55); // Counter
-        g.drawRect(856, 502, 108, 55); // Kitchen
-        g.drawRect(856, 564, 108, 67); // Stockroom
-        g.drawRect(1107, 439, 104, 56); // Side corridor
-        g.drawRect(1107, 502, 104, 66); // Back alley
-        g.drawRect(989, 586, 88, 47); // Office
-        // Narrow connecting halls keep the schematic readable without a dashboard card.
+        g.drawRect(974, 360, 102, 79); // Exterior front entrance | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
+        g.drawRect(856, 440, 108, 55); // Counter | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
+        g.drawRect(856, 502, 108, 55); // Kitchen | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
+        g.drawRect(856, 564, 108, 67); // Stockroom | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
+        g.drawRect(1107, 439, 104, 56); // Side corridor | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
+        g.drawRect(1107, 502, 104, 66); // Back alley | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
+        g.drawRect(989, 586, 88, 47); // Office | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
+        // Narrow connecting halls keep the schematic readable without a dashboard card. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
         g.drawPolyline(new int[]{997, 997, 964}, new int[]{439, 466, 466}, 3);
         g.drawPolyline(new int[]{1007, 1007, 964}, new int[]{439, 476, 476}, 3);
         g.drawPolyline(new int[]{1040, 1040, 1107}, new int[]{439, 466, 466}, 3);
@@ -480,10 +503,11 @@ public final class GamePanel extends ScenePanel {
         Theme.text(g, "YOU", 1009, 618, Theme.pixel(28), Color.WHITE);
     }
 
-    // Dark gradients keep HUD text readable over bright room images.
+    // Dark gradients keep HUD text readable over bright room images. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * Draw top/bottom dark gradients so white text remains readable over room art. This helper
      * changes presentation only.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     private void shadeHud(Graphics2D g) {
         g.setPaint(new GradientPaint(0, 0, new Color(0, 0, 0, 100), 0, 135, new Color(0, 0, 0, 0)));
@@ -492,11 +516,12 @@ public final class GamePanel extends ScenePanel {
         g.fillRect(0, 559, WIDTH, 161);
     }
 
-    // Read model values for warnings, defense progress, fictional time, power, and usage bars.
+    // Read model values for warnings, defense progress, fictional time, power, and usage bars. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * Read approach warnings, defense fade, retreat notice, fictional clock, night, power and usage
      * bars. The model supplies actual values; the HUD ceil power display is rounded feedback, not
      * stored power.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     private void renderHud(Graphics2D g) {
         if (session.gudo().atOffice() && !session.finished()) {
@@ -533,10 +558,11 @@ public final class GamePanel extends ScenePanel {
         }
     }
 
-    // ScenePanel calls this after painting Swing children, allowing effects to cover the whole screen.
+    // ScenePanel calls this after painting Swing children, allowing effects to cover the whole screen. | Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
     /*
      * After Swing children, add light CCTV noise and the first-two-seconds night intro.
      * reducedEffects bypasses these animations; normal session rules remain unchanged.
+     * Reviewer (42-page edition): [p. 19: GamePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-19).
      */
     @Override protected void renderOverlay(Graphics2D g) {
         if (session.monitorOpen()) VhsOverlay.paint(g, assets, age, 0.035f, settings.get().reducedEffects());

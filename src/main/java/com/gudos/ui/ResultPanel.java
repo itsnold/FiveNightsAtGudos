@@ -6,7 +6,7 @@ import com.gudos.game.RunRecord;
 
 import java.awt.*;
 
-/** Displays the final RunRecord and reflects the asynchronous save's pending/success/failure status. */
+/** Displays the final RunRecord and reflects the asynchronous save's pending/success/failure status. Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24). */
 /*
  * ResultPanel
  *
@@ -24,6 +24,7 @@ import java.awt.*;
  *
  * Summary: A displayed result and a fully saved result are different states. This panel makes
  * the asynchronous storage status visible.
+ * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
  */
 public final class ResultPanel extends BackdropPanel {
     private final RunRecord run;
@@ -37,6 +38,7 @@ public final class ResultPanel extends BackdropPanel {
      * Retain the final RunRecord. Choose next night only for a normal completion, cap at five,
      * otherwise replay the same night. Create next/menu/retry callbacks; initially block navigation
      * and hide Retry until Application reports save status.
+     * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
      */
     public ResultPanel(AssetManager assets, Navigation navigation, RunRecord run, Runnable retrySave) {
         super(assets);
@@ -51,10 +53,11 @@ public final class ResultPanel extends BackdropPanel {
         retry.setVisible(false);
     }
 
-    // Block navigation to another shift until storage finishes, preserving this pending result.
+    // Block navigation to another shift until storage finishes, preserving this pending result. | Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
     /*
      * Mark the status pending, disable next/menu and hide Retry. A second attempt must not replace
      * the pending result before storage finishes.
+     * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
      */
     public void saving() {
         saveFailed = false;
@@ -64,10 +67,11 @@ public final class ResultPanel extends BackdropPanel {
         retry.setVisible(false);
     }
 
-    // Application calls this after both the SQLite save and text report succeed.
+    // Application calls this after both the SQLite save and text report succeed. | Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
     /*
      * Mark both stores successful, enable next/menu and hide Retry. Application calls this only
      * after SQLite save and text append both return.
+     * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
      */
     public void saved() {
         saveFailed = false;
@@ -77,10 +81,11 @@ public final class ResultPanel extends BackdropPanel {
         retry.setVisible(false);
     }
 
-    // Keep the result available for retry; returning to the menu requires an incomplete-save confirmation.
+    // Keep the result available for retry; returning to the menu requires an incomplete-save confirmation. | Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
     /*
      * Keep next disabled, allow menu with a coordinator warning and show Retry Save. The same
      * immutable RunRecord remains available, so ordinary retries do not add duplicate rows.
+     * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
      */
     public void failed() {
         saveFailed = true;
@@ -93,6 +98,7 @@ public final class ResultPanel extends BackdropPanel {
     /*
      * Draw the outcome-specific title/instruction, actual active duration, rounded remaining power
      * and save status. Only Outcome.COMPLETED receives normal victory treatment.
+     * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
      */
     @Override protected void render(Graphics2D g) {
         backdrop(g);

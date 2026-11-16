@@ -21,3 +21,7 @@ The source uses Latin Modern fonts, standard LaTeX math, fontspec, geometry, boo
 New Game, Continue, night selection and replay share the Navigation.startNight contract implemented by Application. That coordinating boundary and AudioService provide facade examples; renderer wrappers implement Decorator and SecretLevelBuilder implements Builder.
 
 The Java cleanup removes presentation-oriented labels without changing executable syntax. All 70 production class files match original bytes when compiled without debug metadata. Full Maven verification remains blocked by dependency-host access; no complete Maven package/native GUI/audio verification is claimed.
+
+## References from source comments
+
+Every existing Java comment includes a `Reviewer (42-page edition)` reference to its file card and, where applicable, a related concept page. Follow its link to [the page index](Reviewer_Pages.md), which reproduces the supplied PDF page text. For example, New Game / `startNight` links to page 13 (Facade) and the relevant file card. These numbers refer to the supplied 42-page PDF, not the earlier 45- or 131-page editions.

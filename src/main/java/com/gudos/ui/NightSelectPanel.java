@@ -5,7 +5,7 @@ import com.gudos.persistence.Progress;
 
 import java.awt.*;
 
-/** Displays five nights; buttons are enabled from the current profile's saved progress. */
+/** Displays five nights; buttons are enabled from the current profile's saved progress. Reviewer (42-page edition): [p. 21: NightSelectPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21). */
 /*
  * NightSelectPanel
  *
@@ -21,6 +21,7 @@ import java.awt.*;
  *
  * Summary: Disabling a button is user feedback. The coordinator guard is the second boundary
  * that rejects a locked start request.
+ * Reviewer (42-page edition): [p. 21: NightSelectPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
  */
 public final class NightSelectPanel extends BackdropPanel {
     private final Progress progress;
@@ -28,13 +29,14 @@ public final class NightSelectPanel extends BackdropPanel {
     /*
      * Create five night buttons with captured numeric callbacks to Navigation.startNight. Set each
      * enabled state from Progress.unlocked; Application rechecks eligibility.
+     * Reviewer (42-page edition): [p. 21: NightSelectPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
      */
     public NightSelectPanel(AssetManager assets, Navigation navigation, Progress progress) {
         super(assets);
         this.progress = progress;
         backButton(navigation);
         for (int night = 1; night <= 5; night++) {
-            // Capture this iteration's value for the callback; the loop variable itself keeps changing.
+            // Capture this iteration's value for the callback; the loop variable itself keeps changing. | Reviewer (42-page edition): [p. 21: NightSelectPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
             int selected = night;
             GameButton button = new GameButton("Night " + night, GameButton.Style.TEXT, () -> navigation.startNight(selected));
             button.setFont(Theme.pixel(44));
@@ -46,6 +48,7 @@ public final class NightSelectPanel extends BackdropPanel {
     /*
      * Show the saved selection page; label nights Cleared or Locked using loaded progress and draw
      * the increasing-difficulty hint. Button callbacks were created with a captured night value.
+     * Reviewer (42-page edition): [p. 21: NightSelectPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
      */
     @Override protected void render(Graphics2D g) {
         pageChrome(g, "Select Night", "Finish a shift to unlock the next. Replaying does not reset your progress.");

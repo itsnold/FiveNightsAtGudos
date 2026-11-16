@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-/** Supplied title renders flicker in brief, randomly spaced bursts beneath the static. */
+/** Supplied title renders flicker in brief, randomly spaced bursts beneath the static. Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20). */
 /*
  * MenuPanel
  *
@@ -29,6 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * Summary: The menu delegates the complex start operation to the Navigation/Application
  * facade. It does not create the session itself.
+ * Reviewer (42-page edition): [p. 13: Facade](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-13); [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
  */
 public final class MenuPanel extends ScenePanel {
     private final AssetManager assets;
@@ -43,16 +44,18 @@ public final class MenuPanel extends ScenePanel {
     /*
      * Choose 3.5..10 seconds between visual flicker bursts using ThreadLocalRandom. This randomness
      * affects portraits only; Gudo route order remains deterministic.
+     * Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
      */
     private static double normalInterval() {
         return ThreadLocalRandom.current().nextDouble(3.5, 10.0);
     }
 
-    // Update only the title's flicker animation; there is no active game simulation on this screen.
+    // Update only the title's flicker animation; there is no active game simulation on this screen. | Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
     /*
      * Advance visual age; reduced effects resets to the normal portrait. Otherwise count down,
      * choose a short burst of one to four different frightening portraits, then return to the normal
      * waiting interval.
+     * Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
      */
     @Override public void tick(double seconds) {
         super.tick(seconds);
@@ -82,12 +85,13 @@ public final class MenuPanel extends ScenePanel {
      * Retain assets/settings/progress; wire New Game to startNight(1), Continue to
      * startNight(nextNight), Extras and Quit. Enable Continue only when totalRuns>0; install hover
      * and up/down/Enter selection. No database rows are erased.
+     * Reviewer (42-page edition): [p. 13: Facade](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-13); [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
      */
     public MenuPanel(AssetManager assets, Navigation navigation, Settings settings, Progress progress) {
         this.assets = assets;
         this.settings = settings;
         this.progress = progress;
-        // New Game starts Night 1 without erasing history; Continue starts the next unlocked night.
+        // New Game starts Night 1 without erasing history; Continue starts the next unlocked night. | Reviewer (42-page edition): [p. 13: Facade](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-13); [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
         entry("New Game", 385, () -> navigation.startNight(1));
         GameButton continueButton = entry("Continue", 457, () -> navigation.startNight(progress.nextNight()));
         continueButton.setEnabled(progress.totalRuns() > 0);
@@ -101,11 +105,12 @@ public final class MenuPanel extends ScenePanel {
         bind("pressed ENTER", "choose", () -> entries.get(selected).doClick());
     }
 
-    // Share selection between mouse hover and keyboard navigation.
+    // Share selection between mouse hover and keyboard navigation. | Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
     /*
      * Create a text-style button for a supplied navigation callback, capture its list index for
      * hover selection, and register it at a logical position. The callback passed here is where menu
      * functionality starts.
+     * Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
      */
     private GameButton entry(String text, int y, Runnable action) {
         int index = entries.size();
@@ -115,6 +120,7 @@ public final class MenuPanel extends ScenePanel {
             /*
              * If the hovered menu button is enabled, select its captured entry index. Hover and
              * keyboard navigation therefore update the same highlight state.
+             * Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
              */
             @Override public void mouseEntered(MouseEvent event) { if (button.isEnabled()) select(index); }
         });
@@ -122,10 +128,11 @@ public final class MenuPanel extends ScenePanel {
         return button;
     }
 
-    // Wrap around the menu and skip disabled entries such as Continue before the first attempt.
+    // Wrap around the menu and skip disabled entries such as Continue before the first attempt. | Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
     /*
      * Wrap the selected index using floorMod and skip disabled entries. Continue is disabled for
      * zero recorded attempts, so keyboard navigation cannot select it prematurely.
+     * Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
      */
     private void move(int direction) {
         int index = selected;
@@ -136,6 +143,7 @@ public final class MenuPanel extends ScenePanel {
     /*
      * Store the current index and update every button selected state. Mouse hover and keyboard
      * movement share the same visible selection.
+     * Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
      */
     private void select(int index) {
         selected = index;
@@ -145,6 +153,7 @@ public final class MenuPanel extends ScenePanel {
     /*
      * Draw the chosen title portrait, title, completion stars and next-night text from saved
      * Progress. Drawing progress does not itself unlock or save anything.
+     * Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
      */
     @Override protected void render(Graphics2D g) {
         g.setColor(Color.BLACK);
@@ -160,6 +169,7 @@ public final class MenuPanel extends ScenePanel {
 
     /*
      * Draw the title VHS overlay at panel age and skip it when reducedEffects is enabled.
+     * Reviewer (42-page edition): [p. 20: MenuPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
      */
     @Override protected void renderOverlay(Graphics2D g) {
         VhsOverlay.paint(g, assets, age, 0.46f, settings.reducedEffects());
