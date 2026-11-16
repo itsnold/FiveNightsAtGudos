@@ -4,9 +4,13 @@ import com.gudos.assets.AssetManager;
 
 import java.awt.*;
 
-/** Static guide/credits screen; the credits flag chooses which content is drawn. Reviewer (42-page edition): [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21). */
+/** Static guide/credits screen; the credits flag chooses which content is drawn. [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21). Related: [Application.java:319 (page)](../Application.java#L319) (chooses guide versus credits); [ui/BackdropPanel.java:85 (backButton)](BackdropPanel.java#L85) (page background and return action). */
 /*
  * InfoPanel
+ *
+ * Related: [Application.java:319 (page)](../Application.java#L319) (chooses guide versus credits);
+ * [ui/BackdropPanel.java:85 (backButton)](BackdropPanel.java#L85) (page background and return action);
+ * [ui/GamePanel.java:108 (GamePanel)](GamePanel.java#L108) (implements the controls described by the guide).
  *
  * Purpose: Draws the in-game guide or credits.
  *
@@ -21,7 +25,7 @@ import java.awt.*;
  *
  * Summary: To find a rule, use the guide for the explanation and then show the corresponding
  * GameSession/GamePanel method for proof.
- * Reviewer (42-page edition): [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+ * [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
  */
 public final class InfoPanel extends BackdropPanel {
     private final boolean credits;
@@ -29,7 +33,10 @@ public final class InfoPanel extends BackdropPanel {
     /*
      * Store whether this instance shows credits or the guide, retain assets through the backdrop and
      * install Back/Escape navigation.
-     * Reviewer (42-page edition): [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * Related: [Application.java:324 (InfoPanel call)](../Application.java#L324) (caller of InfoPanel);
+     * [ui/BackdropPanel.java:85 (backButton)](BackdropPanel.java#L85) (page background and return action);
+     * [ui/GamePanel.java:108 (GamePanel)](GamePanel.java#L108) (implements the controls described by the guide).
      */
     public InfoPanel(AssetManager assets, Navigation navigation, boolean credits) {
         super(assets);
@@ -40,7 +47,10 @@ public final class InfoPanel extends BackdropPanel {
     /*
      * Choose the static guide or static credits based on the constructor flag. Neither branch
      * changes gameplay or progress.
-     * Reviewer (42-page edition): [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * Related: [Application.java:319 (page)](../Application.java#L319) (chooses guide versus credits);
+     * [ui/BackdropPanel.java:85 (backButton)](BackdropPanel.java#L85) (page background and return action);
+     * [ui/GamePanel.java:108 (GamePanel)](GamePanel.java#L108) (implements the controls described by the guide).
      */
     @Override protected void render(Graphics2D g) {
         if (credits) renderCredits(g);
@@ -50,7 +60,10 @@ public final class InfoPanel extends BackdropPanel {
     /*
      * Draw control descriptions, three survival instructions and the no-checkpoint/focus-pause
      * explanation. The actual enforcement is in GamePanel and GameSession.
-     * Reviewer (42-page edition): [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * Related: [ui/Theme.java:150 (tracked)](Theme.java#L150) (used by renderGuide);
+     * [ui/GamePanel.java:108 (GamePanel)](GamePanel.java#L108) (implements the controls described by the guide);
+     * [Application.java:319 (page)](../Application.java#L319) (chooses guide versus credits).
      */
     private void renderGuide(Graphics2D g) {
         pageChrome(g, "How to Play", "");
@@ -88,7 +101,10 @@ public final class InfoPanel extends BackdropPanel {
     /*
      * Draw technology and asset attribution text. Current code/manifest/Sound enum are the authority
      * if an older descriptive sentence differs from the implementation.
-     * Reviewer (42-page edition): [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * [p. 21: InfoPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * Related: [ui/Theme.java:131 (text)](Theme.java#L131) (used by renderCredits);
+     * [Application.java:319 (page)](../Application.java#L319) (chooses guide versus credits);
+     * [ui/BackdropPanel.java:85 (backButton)](BackdropPanel.java#L85) (page background and return action).
      */
     private void renderCredits(Graphics2D g) {
         pageChrome(g, "Credits", "Five Nights at Gudo's");

@@ -2,9 +2,14 @@ package com.gudos.game;
 
 import java.time.Instant;
 
-/** Immutable result of one ended attempt. Database links it to a profile when saving. Reviewer (42-page edition): [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26). */
+/** Immutable result of one ended attempt. Database links it to a profile when saving. [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26). Related: [game/GameSession.java:133 (RunRecord call)](GameSession.java#L133) (caller of RunRecord); [persistence/Database.java:326 (RunRecord call)](../persistence/Database.java#L326) (caller of RunRecord). */
 /*
  * RunRecord
+ *
+ * Related: [game/GameSession.java:131 (finish)](GameSession.java#L131) (creates the immutable record);
+ * [persistence/Database.java:261 (saveRun)](../persistence/Database.java#L261) (stores the attempt);
+ * [persistence/ShiftLogStore.java:61 (append)](../persistence/ShiftLogStore.java#L61) (writes its readable receipt);
+ * [ui/RecordsPanel.java:55 (RecordsPanel)](../ui/RecordsPanel.java#L55) (displays saved attempts).
  *
  * Purpose: Carries the immutable snapshot of one ended attempt.
  *
@@ -19,17 +24,20 @@ import java.time.Instant;
  *
  * Summary: The record is the receipt for an attempt, not a resumable checkpoint. Its UUID
  * identifies the attempt independently of the player profile.
- * Reviewer (42-page edition): [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
+ * [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
  */
 public record RunRecord(String id, int night, double elapsedSeconds, double powerRemaining,
                         Outcome outcome, Instant startedAt, Instant endedAt) {
     /*
      * Round active elapsed seconds to the nearest whole second and format minutes:seconds. A paused
      * 18-second attempt displays 00:18 even if more real wall time passed.
-     * Reviewer (42-page edition): [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
+     * [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
+     * Related: [persistence/ShiftLogStore.java:74 (durationLabel call)](../persistence/ShiftLogStore.java#L74) (caller of durationLabel);
+     * [ui/RecordsPanel.java:76 (durationLabel call)](../ui/RecordsPanel.java#L76) (caller of durationLabel);
+     * [game/GameSession.java:131 (finish)](GameSession.java#L131) (creates the immutable record).
      */
     public String durationLabel() {
-        // Display actual active play time as minutes:seconds, not the fictional in-game clock. | Reviewer (42-page edition): [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
+        // Display actual active play time as minutes:seconds, not the fictional in-game clock. | [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26). | Related: [persistence/ShiftLogStore.java:74 (durationLabel call)](../persistence/ShiftLogStore.java#L74) (caller of durationLabel); [ui/RecordsPanel.java:76 (durationLabel call)](../ui/RecordsPanel.java#L76) (caller of durationLabel).
         int seconds = (int) Math.round(elapsedSeconds);
         return "%02d:%02d".formatted(seconds / 60, seconds % 60);
     }

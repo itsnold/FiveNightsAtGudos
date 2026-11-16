@@ -1,8 +1,13 @@
 package com.gudos.game;
 
-/** One enemy, three connected approaches. All timers use the active shift clock. Reviewer (42-page edition): [p. 8: clock and power](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-8); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). */
+/** One enemy, three connected approaches. All timers use the active shift clock. [p. 8: clock and power](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-8); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (advances deadlines and checks effective light); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption). */
 /*
  * GudoEncounter
+ *
+ * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (advances deadlines and checks effective light);
+ * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption);
+ * [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (draws approach and exposure fade);
+ * [game/Scene.java:49 (Scene)](Scene.java#L49) (route locations).
  *
  * Purpose: Implements one deterministic enemy encounter state machine and three approach routes.
  *
@@ -19,16 +24,19 @@ package com.gudos.game;
  *
  * Summary: Gudo is not moving randomly or using machine learning. Successful defenses cycle
  * left, right, center, then left again; timing becomes harder by night.
- * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+ * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
  */
 public final class GudoEncounter {
-    // Each approach defines the CCTV route followed before reaching its office doorway. | Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+    // Each approach defines the CCTV route followed before reaching its office doorway. | [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). | Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (advances deadlines and checks effective light); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption).
     /*
      * Approach
      *
      * Enemy route metadata: state key, displayed direction, target normalized pan and camera path.
      * This enum is configuration, not separate polymorphic State classes.
-     * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (advances deadlines and checks effective light);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption);
+     * [game/Scene.java:49 (Scene)](Scene.java#L49) (route locations).
      */
     public enum Approach {
         LEFT("left", "LEFT / SERVICE DOOR", 0.12, new Scene[]{Scene.CAM_04, Scene.CAM_03, Scene.CAM_02}),
@@ -43,7 +51,10 @@ public final class GudoEncounter {
         /*
          * Retain the approach state key, readable label, normalized pan and camera route. Each enum
          * entry supplies its own fixed metadata for the same encounter algorithm.
-         * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+         * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+         * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (advances deadlines and checks effective light);
+         * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption);
+         * [game/Scene.java:49 (Scene)](Scene.java#L49) (route locations).
          */
         Approach(String state, String label, double pan, Scene[] route) {
             this.state = state;
@@ -55,26 +66,38 @@ public final class GudoEncounter {
         /*
          * Read the readable UI label. This accessor does not advance time, save data or change the
          * model; callers use it to draw or coordinate behavior.
-         * Reviewer (42-page edition): [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+         * [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+         * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (uses approach facing for defense);
+         * [ui/GamePanel.java:597 (renderHud)](../ui/GamePanel.java#L597) (approach instructions);
+         * [Application.java:391 (updateGameAudio)](../Application.java#L391) (directional sound pan).
          */
         public String label() { return label; }
         /*
          * Read the normalized direction associated with this value. This accessor does not advance
          * time, save data or change the model; callers use it to draw or coordinate behavior.
-         * Reviewer (42-page edition): [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+         * [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+         * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (uses approach facing for defense);
+         * [ui/GamePanel.java:597 (renderHud)](../ui/GamePanel.java#L597) (approach instructions);
+         * [Application.java:391 (updateGameAudio)](../Application.java#L391) (directional sound pan).
          */
         public double pan() { return pan; }
         /*
          * Append -occupied to the approach state: left-occupied, right-occupied or front-occupied.
          * These keys match the office manifest entries.
-         * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+         * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+         * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (uses approach facing for defense);
+         * [ui/GamePanel.java:597 (renderHud)](../ui/GamePanel.java#L597) (approach instructions);
+         * [Application.java:391 (updateGameAudio)](../Application.java#L391) (directional sound pan).
          */
         public String officeState() { return state + "-occupied"; }
-        // The flashlight is effective only inside the doorway's normalized viewing range. | Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+        // The flashlight is effective only inside the doorway's normalized viewing range. | [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). | Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (uses approach facing for defense); [ui/GamePanel.java:597 (renderHud)](../ui/GamePanel.java#L597) (approach instructions).
         /*
          * Use an approach-specific normalized viewing range: LEFT pan<=0.30, RIGHT pan>=0.70, FRONT
          * within 0.22 of 0.50. Correct direction is required as well as holding the light.
-         * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+         * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+         * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (uses approach facing for defense);
+         * [ui/GamePanel.java:597 (renderHud)](../ui/GamePanel.java#L597) (approach instructions);
+         * [Application.java:391 (updateGameAudio)](../Application.java#L391) (directional sound pan).
          */
         public boolean faces(double officePan) {
             return this == LEFT ? officePan <= 0.30 : this == RIGHT ? officePan >= 0.70 : Math.abs(officePan - 0.5) <= 0.22;
@@ -83,10 +106,10 @@ public final class GudoEncounter {
 
     private final int night;
     private Approach approach = Approach.LEFT;
-    // -1 is the waiting period before the first camera on the current route. | Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+    // -1 is the waiting period before the first camera on the current route. | [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). | Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (advances deadlines and checks effective light); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption).
     private int routeIndex = -1;
     private int repelled;
-    // Countdown to the next route step or attack; exposure accumulates successful flashlight time. | Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+    // Countdown to the next route step or attack; exposure accumulates successful flashlight time. | [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). | Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (advances deadlines and checks effective light); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption).
     private double timer;
     private double exposure;
     private boolean atOffice;
@@ -95,49 +118,55 @@ public final class GudoEncounter {
     /*
      * Store the difficulty night and begin the first wait at 18 - (night-1)*2 seconds. Initial
      * approach is LEFT and routeIndex=-1 means no occupied room yet.
-     * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (drives deadlines and effective light);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes route changes for feedback).
      */
     GudoEncounter(int night) {
         this.night = night;
         timer = 18 - (night - 1) * 2;
     }
 
-    /** Split at state boundaries so a long frame cannot skip an attack or a retreat. Reviewer (42-page edition): [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). */
+    /** Split at state boundaries so a long frame cannot skip an attack or a retreat. [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (drives deadlines and effective light); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes route changes for feedback). */
     /*
      * For an illuminated office encounter return the earlier of remaining attack time and exposure
      * needed to repel; otherwise return timer. GameSession uses this to split its frame at the exact
      * next state boundary.
-     * Reviewer (42-page edition): [p. 8: clock and power](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-8); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 8: clock and power](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-8); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (drives deadlines and effective light);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes route changes for feedback).
      */
     double untilEvent(boolean illuminated) {
         return atOffice && illuminated ? Math.min(timer, Math.max(0, flashSeconds() - exposure)) : timer;
     }
 
-    // GameSession supplies steps ending at the next event. No independent wall clock is used here. | Reviewer (42-page edition): [p. 8: clock and power](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-8); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+    // GameSession supplies steps ending at the next event. No independent wall clock is used here. | [p. 8: clock and power](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-8); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). | Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (drives deadlines and effective light); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes route changes for feedback).
     /*
      * Subtract the supplied event-bounded step from timer. At the office, add effective exposure or
      * decay it at 0.65 per second; enough exposure repels, resets travel and cycles approach,
      * otherwise an expired timer catches. During travel, an expired timer enters the next camera or
      * the office. Small epsilons handle floating-point rounding.
-     * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (drives deadlines and effective light);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes route changes for feedback).
      */
     void advance(double seconds, boolean illuminated) {
         timer = Math.max(0, timer - seconds);
         if (atOffice) {
-            // Looking away/releasing the light lets Gudo recover at 65% of the exposure rate. | Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+            // Looking away/releasing the light lets Gudo recover at 65% of the exposure rate. | [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). | Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (drives deadlines and effective light); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes route changes for feedback).
             exposure = illuminated ? Math.min(flashSeconds(), exposure + seconds) : Math.max(0, exposure - seconds * 0.65);
-            // The small tolerance avoids missing a deadline due to floating-point rounding. | Reviewer (42-page edition): [p. 8: clock and power](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-8); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+            // The small tolerance avoids missing a deadline due to floating-point rounding. | [p. 8: clock and power](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-8); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). | Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (drives deadlines and effective light); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes route changes for feedback).
             if (exposure >= flashSeconds() - 1e-9) {
                 atOffice = false;
                 routeIndex = -1;
                 exposure = 0;
                 repelled++;
-                // Successful defenses cycle LEFT -> RIGHT -> FRONT -> LEFT, followed by a new wait. | Reviewer (42-page edition): [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+                // Successful defenses cycle LEFT -> RIGHT -> FRONT -> LEFT, followed by a new wait. | [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). | Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (drives deadlines and effective light); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes route changes for feedback).
                 approach = Approach.values()[repelled % Approach.values().length];
                 timer = Math.max(5, 13 - (night - 1) - Math.min(4, repelled));
             } else if (timer <= 1e-9) caught = true;
         } else if (timer <= 1e-9) {
-            // Move through camera positions, then start the office's defense countdown. | Reviewer (42-page edition): [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+            // Move through camera positions, then start the office's defense countdown. | [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). | Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (drives deadlines and effective light); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes route changes for feedback).
             routeIndex++;
             if (routeIndex == approach.route.length) {
                 atOffice = true;
@@ -147,60 +176,87 @@ public final class GudoEncounter {
         }
     }
 
-    // Null means Gudo is between encounters and should not appear on any room render. | Reviewer (42-page edition): [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+    // Null means Gudo is between encounters and should not appear on any room render. | [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). | Related: [game/GameSession.java:248 (location call)](GameSession.java#L248) (caller of location); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption).
     /*
      * Return OFFICE during an office encounter, null during the wait between encounters, or the
      * current route camera. A single location makes the previous room clean automatically.
-     * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [game/GameSession.java:248 (location call)](GameSession.java#L248) (caller of location);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption);
+     * [game/Scene.java:49 (Scene)](Scene.java#L49) (route locations).
      */
     public Scene location() { return atOffice ? Scene.OFFICE : routeIndex < 0 ? null : approach.route[routeIndex]; }
     /*
      * Read the current LEFT/RIGHT/FRONT approach. This accessor does not advance time, save data or
      * change the model; callers use it to draw or coordinate behavior.
-     * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [game/GameSession.java:104 (approach call)](GameSession.java#L104) (caller of approach);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption);
+     * [game/Scene.java:49 (Scene)](Scene.java#L49) (route locations).
      */
     public Approach approach() { return approach; }
     /*
      * Read whether the enemy is currently in an office defense encounter. This accessor does not
      * advance time, save data or change the model; callers use it to draw or coordinate behavior.
-     * Reviewer (42-page edition): [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (advances deadlines and checks effective light);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption);
+     * [game/Scene.java:49 (Scene)](Scene.java#L49) (route locations).
      */
     public boolean atOffice() { return atOffice; }
     /*
      * Read whether the attack deadline has expired. This accessor does not advance time, save data
      * or change the model; callers use it to draw or coordinate behavior.
-     * Reviewer (42-page edition): [p. 8: clock and power](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-8); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 8: clock and power](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-8); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [game/GameSession.java:116 (caught call)](GameSession.java#L116) (caller of caught);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption);
+     * [game/Scene.java:49 (Scene)](Scene.java#L49) (route locations).
      */
     public boolean caught() { return caught; }
     /*
      * Read the number of successful flashlight defenses. This accessor does not advance time, save
      * data or change the model; callers use it to draw or coordinate behavior.
-     * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [game/GameSession.java:96 (update)](GameSession.java#L96) (advances deadlines and checks effective light);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (observes moves for sound and disruption);
+     * [game/Scene.java:49 (Scene)](Scene.java#L49) (route locations).
      */
     public int repelled() { return repelled; }
-    // Higher nights require longer flashlight exposure and allow less time before an attack. | Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+    // Higher nights require longer flashlight exposure and allow less time before an attack. | [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33). | Related: [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (occupied-image fade); [ui/GamePanel.java:597 (renderHud)](../ui/GamePanel.java#L597) (defense feedback).
     /*
      * Require 1.6 + (night-1)*0.2 seconds of effective light: 1.6 on Night 1 through 2.4 on Night 5.
      * Interrupted light reduces accumulated exposure.
-     * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (occupied-image fade);
+     * [ui/GamePanel.java:597 (renderHud)](../ui/GamePanel.java#L597) (defense feedback);
+     * [game/GameSession.java:96 (update)](GameSession.java#L96) (enforces deadlines).
      */
     public double flashSeconds() { return 1.6 + (night - 1) * 0.2; }
     /*
      * Allow 9 - (night-1)*0.8 seconds at the office: 9.0 on Night 1 through 5.8 on Night 5. This
      * timer continues during ineffective or interrupted defense.
-     * Reviewer (42-page edition): [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (occupied-image fade);
+     * [ui/GamePanel.java:597 (renderHud)](../ui/GamePanel.java#L597) (defense feedback);
+     * [game/GameSession.java:96 (update)](GameSession.java#L96) (enforces deadlines).
      */
     public double attackSeconds() { return 9 - (night - 1) * 0.8; }
     /*
      * While at the office, return exposure/required exposure; otherwise return zero. GamePanel uses
      * this fraction to blend the occupied room toward the clean room.
-     * Reviewer (42-page edition): [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 9: Gudo and effective light](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-9); [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (occupied-image fade);
+     * [ui/GamePanel.java:597 (renderHud)](../ui/GamePanel.java#L597) (defense feedback);
+     * [game/GameSession.java:96 (update)](GameSession.java#L96) (enforces deadlines).
      */
     public double fadeProgress() { return atOffice ? exposure / flashSeconds() : 0; }
     /*
      * Expose timer only for the office encounter. GamePanel uses <=3 seconds to emit one
      * urgency/rush cue; zero outside the office is not an active attack.
-     * Reviewer (42-page edition): [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * [p. 33: GudoEncounter](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-33).
+     * Related: [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (occupied-image fade);
+     * [ui/GamePanel.java:597 (renderHud)](../ui/GamePanel.java#L597) (defense feedback);
+     * [game/GameSession.java:96 (update)](GameSession.java#L96) (enforces deadlines).
      */
     public double attackRemaining() { return atOffice ? timer : 0; }
 }

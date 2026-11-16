@@ -1,4 +1,4 @@
-# Reviewer: 42-page edition
+# Page index
 
 This page index reproduces the text of the attached 42-page study guide. Each numbered heading matches the PDF viewer page number and the printed page number. Source comments link to these headings so the explanation can be opened directly on GitHub. Tables retain their PDF text layout; use the PDF for the designed layout.
 

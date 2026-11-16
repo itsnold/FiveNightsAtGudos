@@ -2,9 +2,13 @@ package com.gudos.ui.rendering;
 
 import java.awt.Graphics2D;
 
-/** Component shared by plain renderers and decorators, in the 1280x720 scene space. Reviewer (42-page edition): [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 29: SceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-29). */
+/** Component shared by plain renderers and decorators, in the 1280x720 scene space. [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 29: SceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-29). Related: [ui/rendering/CameraSceneRenderer.java:65 (render)](CameraSceneRenderer.java#L65) (concrete room renderer); [ui/rendering/RendererDecorator.java:54 (render)](RendererDecorator.java#L54) (same-interface wrapper). */
 /*
  * SceneRenderer
+ *
+ * Related: [ui/rendering/CameraSceneRenderer.java:65 (render)](CameraSceneRenderer.java#L65) (concrete room renderer);
+ * [ui/rendering/RendererDecorator.java:54 (render)](RendererDecorator.java#L54) (same-interface wrapper);
+ * [ui/GamePanel.java:508 (renderCamera)](../GamePanel.java#L508) (chooses and invokes a renderer chain).
  *
  * Purpose: Defines the component interface shared by a room renderer and all custom renderer
  * decorators.
@@ -20,14 +24,17 @@ import java.awt.Graphics2D;
  *
  * Summary: Component = SceneRenderer; concrete component = CameraSceneRenderer; wrappers =
  * RendererDecorator subclasses.
- * Reviewer (42-page edition): [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 29: SceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-29).
+ * [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 29: SceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-29).
  */
 public interface SceneRenderer {
     /*
      * Draw the component in 1280x720 logical coordinates for the supplied animation time and
      * reduced-effects setting. Concrete room and wrapper classes must obey this same callable
      * contract.
-     * Reviewer (42-page edition): [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 29: SceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-29).
+     * [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 29: SceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-29).
+     * Related: [ui/GamePanel.java:522 (render call)](../GamePanel.java#L522) (caller of render);
+     * [ui/rendering/RendererDecorator.java:55 (render call)](RendererDecorator.java#L55) (caller of render);
+     * [ui/rendering/CameraSceneRenderer.java:65 (render)](CameraSceneRenderer.java#L65) (concrete room renderer).
      */
     void render(Graphics2D graphics, double time, boolean reducedEffects);
 }

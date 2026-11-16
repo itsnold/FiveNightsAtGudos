@@ -4,9 +4,13 @@ import com.gudos.assets.AssetManager;
 
 import java.awt.*;
 
-/** Links the Extras menu's labels to the corresponding Navigation.Page requests. Reviewer (42-page edition): [p. 21: ExtrasPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21). */
+/** Links the Extras menu's labels to the corresponding Navigation.Page requests. [p. 21: ExtrasPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21). Related: [ui/Navigation.java:39 (Page)](Navigation.java#L39) (page identifiers); [Application.java:319 (page)](../Application.java#L319) (handles secondary-page requests). */
 /*
  * ExtrasPanel
+ *
+ * Related: [Application.java:319 (page)](../Application.java#L319) (handles secondary-page requests);
+ * [ui/Navigation.java:39 (Page)](Navigation.java#L39) (page identifiers);
+ * [ui/BackdropPanel.java:85 (backButton)](BackdropPanel.java#L85) (shared background and Back action).
  *
  * Purpose: Routes five text entries to secondary pages.
  *
@@ -19,13 +23,16 @@ import java.awt.*;
  * State: Labels and Page arrays must stay in the same order.
  *
  * Summary: Extras is an entry menu; Application.page chooses and loads the actual panel.
- * Reviewer (42-page edition): [p. 21: ExtrasPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+ * [p. 21: ExtrasPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
  */
 public final class ExtrasPanel extends BackdropPanel {
     /*
      * Install shared Back and build the five label/Page pairs. Capture each iteration index for its
      * callback so buttons navigate to the intended page.
-     * Reviewer (42-page edition): [p. 21: ExtrasPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * [p. 21: ExtrasPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * Related: [Application.java:322 (ExtrasPanel call)](../Application.java#L322) (caller of ExtrasPanel);
+     * [ui/Navigation.java:57 (page)](Navigation.java#L57) (used by ExtrasPanel);
+     * [ui/GameButton.java:52 (GameButton)](GameButton.java#L52) (button API used by ExtrasPanel).
      */
     public ExtrasPanel(AssetManager assets, Navigation navigation) {
         super(assets);
@@ -43,7 +50,10 @@ public final class ExtrasPanel extends BackdropPanel {
     /*
      * Draw the shared Extras page chrome. The five real navigation buttons were constructed earlier
      * and Swing paints them as children.
-     * Reviewer (42-page edition): [p. 21: ExtrasPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * [p. 21: ExtrasPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-21).
+     * Related: [Application.java:319 (page)](../Application.java#L319) (handles secondary-page requests);
+     * [ui/Navigation.java:39 (Page)](Navigation.java#L39) (page identifiers);
+     * [ui/BackdropPanel.java:85 (backButton)](BackdropPanel.java#L85) (shared background and Back action).
      */
     @Override protected void render(Graphics2D g) {
         pageChrome(g, "Extras", "");

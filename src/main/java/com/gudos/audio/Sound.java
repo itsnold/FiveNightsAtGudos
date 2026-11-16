@@ -1,8 +1,12 @@
 package com.gudos.audio;
 
-/** Named cues have gains relative to master volume; a null path means Chiptune synthesizes them. Reviewer (42-page edition): [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30). */
+/** Named cues have gains relative to master volume; a null path means Chiptune synthesizes them. [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30). Related: [audio/AudioService.java:79 (clip)](AudioService.java#L79) (loads cue paths and applies gains); [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (selects encounter cues). */
 /*
  * Sound
+ *
+ * Related: [audio/AudioService.java:79 (clip)](AudioService.java#L79) (loads cue paths and applies gains);
+ * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (selects encounter cues);
+ * [Application.java:538 (finishShift)](../Application.java#L538) (selects ending cues).
  *
  * Purpose: Names each cue and stores its classpath path and relative gain.
  *
@@ -17,7 +21,7 @@ package com.gudos.audio;
  *
  * Summary: Sound is metadata, AudioService performs playback, and GamePanel decides when
  * gameplay cues should occur.
- * Reviewer (42-page edition): [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
+ * [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
  */
 public enum Sound {
     MENU_MUSIC("music/menu-darkness.wav", 0.65f),
@@ -60,19 +64,28 @@ public enum Sound {
     /*
      * Store a null path for synthesized secret cues or prefix a WAV path with /audio/. Retain
      * relative gain; AudioService later combines it with master volume.
-     * Reviewer (42-page edition): [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
+     * [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
+     * Related: [audio/AudioService.java:79 (clip)](AudioService.java#L79) (loads cue paths and applies gains);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (selects encounter cues);
+     * [Application.java:538 (finishShift)](../Application.java#L538) (selects ending cues).
      */
     Sound(String path, float gain) { this.path = path == null ? null : "/audio/" + path; this.gain = gain; }
     /*
      * Read the resource path, or null for a synthesized secret cue. This accessor does not advance
      * time, save data or change the model; callers use it to draw or coordinate behavior.
-     * Reviewer (42-page edition): [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
+     * [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
+     * Related: [audio/AudioService.java:86 (path call)](AudioService.java#L86) (caller of path);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (selects encounter cues);
+     * [Application.java:538 (finishShift)](../Application.java#L538) (selects ending cues).
      */
     public String path() { return path; }
     /*
      * Read the sound multiplier relative to master volume. This accessor does not advance time, save
      * data or change the model; callers use it to draw or coordinate behavior.
-     * Reviewer (42-page edition): [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
+     * [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
+     * Related: [audio/AudioService.java:113 (gain call)](AudioService.java#L113) (caller of gain);
+     * [ui/GamePanel.java:393 (tick)](../ui/GamePanel.java#L393) (selects encounter cues);
+     * [Application.java:538 (finishShift)](../Application.java#L538) (selects ending cues).
      */
     public float gain() { return gain; }
 }

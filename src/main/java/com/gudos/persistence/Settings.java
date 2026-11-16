@@ -1,8 +1,12 @@
 package com.gudos.persistence;
 
-/** Immutable preferences; selecting another playerName selects another local database profile. Reviewer (42-page edition): [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25). */
+/** Immutable preferences; selecting another playerName selects another local database profile. [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25). Related: [persistence/SettingsStore.java:73 (Settings call)](SettingsStore.java#L73) (caller of Settings); [ui/SettingsPanel.java:245 (Settings call)](../ui/SettingsPanel.java#L245) (caller of Settings). */
 /*
  * Settings
+ *
+ * Related: [persistence/SettingsStore.java:59 (load)](SettingsStore.java#L59) (loads and normalizes preferences);
+ * [ui/SettingsPanel.java:245 (values)](../ui/SettingsPanel.java#L245) (collects edited values);
+ * [Application.java:621 (saveSettings)](../Application.java#L621) (persists and applies changes).
  *
  * Purpose: Validates and carries immutable user preferences.
  *
@@ -17,7 +21,7 @@ package com.gudos.persistence;
  *
  * Summary: Changing playerName selects a local profile, not an authenticated online account.
  * withFullscreen preserves the other three preferences.
- * Reviewer (42-page edition): [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
+ * [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
  */
 public record Settings(String playerName, int volume, boolean reducedEffects, boolean fullscreen) {
     public static final Settings DEFAULT = new Settings("Night Guard", 55, false, false);
@@ -26,21 +30,27 @@ public record Settings(String playerName, int volume, boolean reducedEffects, bo
      * Strip control characters/outer whitespace from playerName, use Night Guard for empty input,
      * cap at32 and clamp volume to0..100. This compact record constructor runs regardless of whether
      * values came from UI or a file.
-     * Reviewer (42-page edition): [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
+     * [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
+     * Related: [persistence/SettingsStore.java:73 (Settings call)](SettingsStore.java#L73) (caller of Settings);
+     * [ui/SettingsPanel.java:245 (Settings call)](../ui/SettingsPanel.java#L245) (caller of Settings);
+     * [Application.java:621 (saveSettings)](../Application.java#L621) (persists and applies changes).
      */
     public Settings {
-        // Validate values regardless of whether they came from the UI or a manually edited text file. | Reviewer (42-page edition): [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
+        // Validate values regardless of whether they came from the UI or a manually edited text file. | [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25). | Related: [persistence/SettingsStore.java:73 (Settings call)](SettingsStore.java#L73) (caller of Settings); [ui/SettingsPanel.java:245 (Settings call)](../ui/SettingsPanel.java#L245) (caller of Settings).
         playerName = playerName == null ? "" : playerName.replaceAll("\\p{Cntrl}", "").strip();
         if (playerName.isEmpty()) playerName = "Night Guard";
         if (playerName.length() > 32) playerName = playerName.substring(0, 32);
         volume = Math.max(0, Math.min(100, volume));
     }
 
-    // A record is immutable: changing one preference creates a replacement Settings value. | Reviewer (42-page edition): [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
+    // A record is immutable: changing one preference creates a replacement Settings value. | [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25). | Related: [Application.java:657 (withFullscreen call)](../Application.java#L657) (caller of withFullscreen); [persistence/SettingsStore.java:59 (load)](SettingsStore.java#L59) (loads and normalizes preferences).
     /*
      * Create a new Settings with the supplied fullscreen value and the same name/volume/effects.
      * Records are immutable values, so replacing the value is the update mechanism.
-     * Reviewer (42-page edition): [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
+     * [p. 25: Settings](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
+     * Related: [Application.java:657 (withFullscreen call)](../Application.java#L657) (caller of withFullscreen);
+     * [ui/SettingsPanel.java:245 (values)](../ui/SettingsPanel.java#L245) (collects edited values);
+     * [persistence/SettingsStore.java:59 (load)](SettingsStore.java#L59) (loads and normalizes preferences).
      */
     public Settings withFullscreen(boolean value) {
         return new Settings(playerName, volume, reducedEffects, value);

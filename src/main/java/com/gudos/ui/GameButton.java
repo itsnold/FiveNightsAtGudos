@@ -3,9 +3,14 @@ package com.gudos.ui;
 import javax.swing.*;
 import java.awt.*;
 
-/** A normal Swing button with custom painting and a caller-supplied action. Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22). */
+/** A normal Swing button with custom painting and a caller-supplied action. [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22). Related: [ui/MenuPanel.java:132 (entry)](MenuPanel.java#L132) (text-style button client); [ui/GamePanel.java:108 (GamePanel)](GamePanel.java#L108) (monitor, light and camera button clients). */
 /*
  * GameButton
+ *
+ * Related: [ui/MenuPanel.java:132 (entry)](MenuPanel.java#L132) (text-style button client);
+ * [ui/GamePanel.java:108 (GamePanel)](GamePanel.java#L108) (monitor, light and camera button clients);
+ * [ui/ScenePanel.java:79 (place)](ScenePanel.java#L79) (positions and scales controls);
+ * [ui/Theme.java:76 (pixel)](Theme.java#L76) (shared typography).
  *
  * Purpose: Uses a real JButton with custom visual styles and a supplied action.
  *
@@ -20,14 +25,17 @@ import java.awt.*;
  *
  * Summary: A label is not the implementation. Follow the callback passed into the GameButton
  * constructor to find the actual feature.
- * Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
+ * [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
  */
 public final class GameButton extends JButton {
     /*
      * Style
      *
      * Named button appearances; input behavior remains in JButton and the supplied callback.
-     * Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
+     * [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
+     * Related: [ui/MenuPanel.java:132 (entry)](MenuPanel.java#L132) (text-style button client);
+     * [ui/GamePanel.java:108 (GamePanel)](GamePanel.java#L108) (monitor, light and camera button clients);
+     * [ui/ScenePanel.java:79 (place)](ScenePanel.java#L79) (positions and scales controls).
      */
     public enum Style { PRIMARY, SECONDARY, QUIET, CAMERA, TEXT, MONITOR, LIGHT }
     private final Style style;
@@ -36,7 +44,10 @@ public final class GameButton extends JButton {
      * Initialize a real JButton, configure its font/style/accessibility/cursor/transparent painting,
      * and install one ActionListener that invokes the supplied Runnable. This retains Swing
      * enabled/selected/input semantics while custom paintComponent supplies appearance.
-     * Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
+     * [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
+     * Related: [ui/BackdropPanel.java:86 (GameButton call)](BackdropPanel.java#L86) (caller of GameButton);
+     * [ui/ExtrasPanel.java:44 (GameButton call)](ExtrasPanel.java#L44) (caller of GameButton);
+     * [ui/Theme.java:76 (pixel)](Theme.java#L76) (used by GameButton).
      */
     public GameButton(String text, Style style, Runnable action) {
         super(text);
@@ -50,17 +61,20 @@ public final class GameButton extends JButton {
         setOpaque(false);
         setRolloverEnabled(true);
         getAccessibleContext().setAccessibleName(text);
-        // Swing delivers the click event; the callback decides which game/navigation action to request. | Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
+        // Swing delivers the click event; the callback decides which game/navigation action to request. | [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22). | Related: [ui/BackdropPanel.java:86 (GameButton call)](BackdropPanel.java#L86) (caller of GameButton); [ui/ExtrasPanel.java:44 (GameButton call)](ExtrasPanel.java#L44) (caller of GameButton).
         addActionListener(event -> action.run());
     }
 
-    // Style selects the appearance; the inherited button model still owns pressed/selected states. | Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
+    // Style selects the appearance; the inherited button model still owns pressed/selected states. | [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22). | Related: [ui/Theme.java:114 (quality)](Theme.java#L114) (used by paintComponent); [ui/MenuPanel.java:132 (entry)](MenuPanel.java#L132) (text-style button client).
     /*
      * Read the inherited Swing model enabled/hover/selected/pressed states, then draw the chosen
      * style. Monitor is a chevron tab, light is a hold indicator, camera is a two-line label, and
      * normal/text buttons use measured clipping/selection arrows. Copy/dispose Graphics2D and leave
      * click delivery to JButton; painting never starts a night or changes game rules.
-     * Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
+     * [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
+     * Related: [ui/Theme.java:114 (quality)](Theme.java#L114) (used by paintComponent);
+     * [ui/MenuPanel.java:132 (entry)](MenuPanel.java#L132) (text-style button client);
+     * [ui/GamePanel.java:108 (GamePanel)](GamePanel.java#L108) (monitor, light and camera button clients).
      */
     @Override protected void paintComponent(Graphics graphics) {
         Graphics2D g = (Graphics2D) graphics.create();

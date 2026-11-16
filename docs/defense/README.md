@@ -24,4 +24,4 @@ The Java cleanup removes presentation-oriented labels without changing executabl
 
 ## References from source comments
 
-Every existing Java comment includes a `Reviewer (42-page edition)` reference to its file card and, where applicable, a related concept page. Follow its link to [the page index](Reviewer_Pages.md), which reproduces the supplied PDF page text. For example, New Game / `startNight` links to page 13 (Facade) and the relevant file card. These numbers refer to the supplied 42-page PDF, not the earlier 45- or 131-page editions.
+Every existing Java comment includes a page reference, such as `p. 10`, to its file card and, where applicable, a related concept page. Follow its link to [the page index](Reviewer_Pages.md), which reproduces the supplied PDF page text. For example, New Game / `startNight` links to page 13 (Facade) and the relevant file card. These numbers refer to the supplied 42-page PDF, not the earlier 45- or 131-page editions.

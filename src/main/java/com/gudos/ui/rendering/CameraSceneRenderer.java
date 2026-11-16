@@ -12,9 +12,14 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Objects;
 
-/** Concrete component: the current CCTV room, without animated interference or HUD. Reviewer (42-page edition): [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 28: CameraSceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). */
+/** Concrete component: the current CCTV room, without animated interference or HUD. [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 28: CameraSceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). Related: [ui/GamePanel.java:108 (GamePanel)](../GamePanel.java#L108) (constructs and decorates this component); [game/GameSession.java:247 (sceneState)](../../game/GameSession.java#L247) (camera selection and occupancy). */
 /*
  * CameraSceneRenderer
+ *
+ * Related: [ui/GamePanel.java:108 (GamePanel)](../GamePanel.java#L108) (constructs and decorates this component);
+ * [game/GameSession.java:247 (sceneState)](../../game/GameSession.java#L247) (camera selection and occupancy);
+ * [assets/PanoramaRenderer.java:88 (render)](../../assets/PanoramaRenderer.java#L88) (projects the room image);
+ * [game/CameraMotion.java:45 (pan)](../../game/CameraMotion.java#L45) (automatic sweep).
  *
  * Purpose: Draws the current CCTV room without VHS or switching effects.
  *
@@ -28,7 +33,7 @@ import java.util.Objects;
  * applies the base shade and vignette after room projection.
  *
  * Summary: This is the concrete component in Decorator, not a decorator itself.
- * Reviewer (42-page edition): [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 28: CameraSceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+ * [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 28: CameraSceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
  */
 public final class CameraSceneRenderer implements SceneRenderer {
     private final GameSession session;
@@ -38,7 +43,10 @@ public final class CameraSceneRenderer implements SceneRenderer {
     /*
      * Require nonnull GameSession and AssetManager, then retain them. Its projection buffer is owned
      * by this concrete component and reused per frame.
-     * Reviewer (42-page edition): [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 28: CameraSceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 28: CameraSceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * Related: [ui/GamePanel.java:116 (CameraSceneRenderer call)](../GamePanel.java#L116) (caller of CameraSceneRenderer);
+     * [game/GameSession.java:247 (sceneState)](../../game/GameSession.java#L247) (camera selection and occupancy);
+     * [assets/PanoramaRenderer.java:88 (render)](../../assets/PanoramaRenderer.java#L88) (projects the room image).
      */
     public CameraSceneRenderer(GameSession session, AssetManager assets) {
         this.session = Objects.requireNonNull(session);
@@ -49,7 +57,10 @@ public final class CameraSceneRenderer implements SceneRenderer {
      * Read current camera and scene-state key from GameSession, compute sweep from session elapsed,
      * project the corresponding cached image and draw it at logical viewport size. Apply the room
      * shade/vignette, leaving VHS/switch effects to wrappers.
-     * Reviewer (42-page edition): [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 28: CameraSceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * [p. 14: Decorator](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-14); [p. 28: CameraSceneRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * Related: [ui/GamePanel.java:508 (renderCamera)](../GamePanel.java#L508) (uses the composed renderer);
+     * [game/GameSession.java:247 (sceneState)](../../game/GameSession.java#L247) (camera occupancy key);
+     * [assets/PanoramaRenderer.java:88 (render)](../../assets/PanoramaRenderer.java#L88) (projects selected room image).
      */
     @Override public void render(Graphics2D graphics, double time, boolean reducedEffects) {
         Scene scene = Scene.camera(session.camera());

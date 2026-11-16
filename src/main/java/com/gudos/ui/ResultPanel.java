@@ -6,9 +6,13 @@ import com.gudos.game.RunRecord;
 
 import java.awt.*;
 
-/** Displays the final RunRecord and reflects the asynchronous save's pending/success/failure status. Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24). */
+/** Displays the final RunRecord and reflects the asynchronous save's pending/success/failure status. [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24). Related: [Application.java:538 (finishShift)](../Application.java#L538) (creates this screen). */
 /*
  * ResultPanel
+ *
+ * Related: [Application.java:538 (finishShift)](../Application.java#L538) (creates this screen);
+ * [Application.java:574 (savePendingRun)](../Application.java#L574) (save and retry coordinator);
+ * [Application.java:358 (startNight)](../Application.java#L358) (handles replay/next-night callbacks).
  *
  * Purpose: Displays an ended RunRecord and the pending/saved/failed storage status.
  *
@@ -24,7 +28,7 @@ import java.awt.*;
  *
  * Summary: A displayed result and a fully saved result are different states. This panel makes
  * the asynchronous storage status visible.
- * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+ * [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
  */
 public final class ResultPanel extends BackdropPanel {
     private final RunRecord run;
@@ -38,7 +42,10 @@ public final class ResultPanel extends BackdropPanel {
      * Retain the final RunRecord. Choose next night only for a normal completion, cap at five,
      * otherwise replay the same night. Create next/menu/retry callbacks; initially block navigation
      * and hide Retry until Application reports save status.
-     * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+     * [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+     * Related: [Application.java:547 (ResultPanel call)](../Application.java#L547) (caller of ResultPanel);
+     * [game/RunRecord.java:30 (outcome)](../game/RunRecord.java#L30) (used by ResultPanel);
+     * [ui/Navigation.java:68 (startNight)](Navigation.java#L68) (used by ResultPanel).
      */
     public ResultPanel(AssetManager assets, Navigation navigation, RunRecord run, Runnable retrySave) {
         super(assets);
@@ -53,11 +60,14 @@ public final class ResultPanel extends BackdropPanel {
         retry.setVisible(false);
     }
 
-    // Block navigation to another shift until storage finishes, preserving this pending result. | Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+    // Block navigation to another shift until storage finishes, preserving this pending result. | [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24). | Related: [Application.java:574 (savePendingRun)](../Application.java#L574) (updates status from save callbacks); [persistence/Database.java:261 (saveRun)](../persistence/Database.java#L261) (attempt write behind the status).
     /*
      * Mark the status pending, disable next/menu and hide Retry. A second attempt must not replace
      * the pending result before storage finishes.
-     * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+     * [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+     * Related: [Application.java:574 (savePendingRun)](../Application.java#L574) (updates status from save callbacks);
+     * [persistence/Database.java:261 (saveRun)](../persistence/Database.java#L261) (attempt write behind the status);
+     * [persistence/ShiftLogStore.java:61 (append)](../persistence/ShiftLogStore.java#L61) (report write also required for success).
      */
     public void saving() {
         saveFailed = false;
@@ -67,11 +77,14 @@ public final class ResultPanel extends BackdropPanel {
         retry.setVisible(false);
     }
 
-    // Application calls this after both the SQLite save and text report succeed. | Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+    // Application calls this after both the SQLite save and text report succeed. | [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24). | Related: [Application.java:574 (savePendingRun)](../Application.java#L574) (updates status from save callbacks); [persistence/Database.java:261 (saveRun)](../persistence/Database.java#L261) (attempt write behind the status).
     /*
      * Mark both stores successful, enable next/menu and hide Retry. Application calls this only
      * after SQLite save and text append both return.
-     * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+     * [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+     * Related: [Application.java:574 (savePendingRun)](../Application.java#L574) (updates status from save callbacks);
+     * [persistence/Database.java:261 (saveRun)](../persistence/Database.java#L261) (attempt write behind the status);
+     * [persistence/ShiftLogStore.java:61 (append)](../persistence/ShiftLogStore.java#L61) (report write also required for success).
      */
     public void saved() {
         saveFailed = false;
@@ -81,11 +94,14 @@ public final class ResultPanel extends BackdropPanel {
         retry.setVisible(false);
     }
 
-    // Keep the result available for retry; returning to the menu requires an incomplete-save confirmation. | Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+    // Keep the result available for retry; returning to the menu requires an incomplete-save confirmation. | [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24). | Related: [Application.java:574 (savePendingRun)](../Application.java#L574) (updates status from save callbacks); [persistence/Database.java:261 (saveRun)](../persistence/Database.java#L261) (attempt write behind the status).
     /*
      * Keep next disabled, allow menu with a coordinator warning and show Retry Save. The same
      * immutable RunRecord remains available, so ordinary retries do not add duplicate rows.
-     * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+     * [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+     * Related: [Application.java:574 (savePendingRun)](../Application.java#L574) (updates status from save callbacks);
+     * [persistence/Database.java:261 (saveRun)](../persistence/Database.java#L261) (attempt write behind the status);
+     * [persistence/ShiftLogStore.java:61 (append)](../persistence/ShiftLogStore.java#L61) (report write also required for success).
      */
     public void failed() {
         saveFailed = true;
@@ -98,7 +114,10 @@ public final class ResultPanel extends BackdropPanel {
     /*
      * Draw the outcome-specific title/instruction, actual active duration, rounded remaining power
      * and save status. Only Outcome.COMPLETED receives normal victory treatment.
-     * Reviewer (42-page edition): [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+     * [p. 24: ResultPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
+     * Related: [game/RunRecord.java:30 (outcome)](../game/RunRecord.java#L30) (used by render);
+     * [ui/Theme.java:150 (tracked)](Theme.java#L150) (used by render);
+     * [Application.java:538 (finishShift)](../Application.java#L538) (creates this screen).
      */
     @Override protected void render(Graphics2D g) {
         backdrop(g);

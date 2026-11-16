@@ -1,8 +1,13 @@
 package com.gudos.persistence;
 
-/** Database summary used by Continue, night selection, and records; counts are derived from attempts. Reviewer (42-page edition): [p. 26: Progress](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26). */
+/** Database summary used by Continue, night selection, and records; counts are derived from attempts. [p. 26: Progress](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26). Related: [persistence/Database.java:243 (Progress call)](Database.java#L243) (caller of Progress); [ui/MenuPanel.java:104 (MenuPanel)](../ui/MenuPanel.java#L104) (Continue availability and next night). */
 /*
  * Progress
+ *
+ * Related: [persistence/Database.java:229 (loadProgress)](Database.java#L229) (loads this summary);
+ * [ui/MenuPanel.java:104 (MenuPanel)](../ui/MenuPanel.java#L104) (Continue availability and next night);
+ * [ui/NightSelectPanel.java:41 (NightSelectPanel)](../ui/NightSelectPanel.java#L41) (gates selectable nights);
+ * [Application.java:358 (startNight)](../Application.java#L358) (rechecks eligibility).
  *
  * Purpose: Provides a loaded summary for menu, night-selection and records screens.
  *
@@ -17,7 +22,7 @@ package com.gudos.persistence;
  *
  * Summary: nextNight is capped at five. highestCompleted is the furthest normal night
  * survived; totalRuns and completedRuns are counts, not night identifiers.
- * Reviewer (42-page edition): [p. 26: Progress](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
+ * [p. 26: Progress](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
  */
 public record Progress(int nextNight, int highestCompleted, int totalRuns, int completedRuns) {
     public static final Progress EMPTY = new Progress(1, 0, 0, 0);
@@ -25,7 +30,10 @@ public record Progress(int nextNight, int highestCompleted, int totalRuns, int c
      * Return true for a requested night>=1 and <=nextNight. Normal nextNight values are
      * constrained/capped at five by database/application writes. The UI and Application both use
      * this eligibility check.
-     * Reviewer (42-page edition): [p. 26: Progress](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
+     * [p. 26: Progress](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
+     * Related: [Application.java:358 (startNight)](../Application.java#L358) (rechecks eligibility);
+     * [ui/NightSelectPanel.java:41 (NightSelectPanel)](../ui/NightSelectPanel.java#L41) (disables locked buttons);
+     * [persistence/Database.java:229 (loadProgress)](Database.java#L229) (loads unlock fields).
      */
     public boolean unlocked(int night) { return night >= 1 && night <= nextNight; }
 }

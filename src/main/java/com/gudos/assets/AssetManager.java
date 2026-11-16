@@ -12,9 +12,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-/** Loads bundled images once and exposes scene/state lookups to screens without file-handling code. Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). */
+/** Loads bundled images once and exposes scene/state lookups to screens without file-handling code. [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). Related: [Main.java:72 (launch)](../Main.java#L72) (loads assets at startup); [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (uses room images). */
 /*
  * AssetManager
+ *
+ * Related: [Main.java:72 (launch)](../Main.java#L72) (loads assets at startup);
+ * [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (uses room images);
+ * [ui/rendering/CameraSceneRenderer.java:65 (render)](../ui/rendering/CameraSceneRenderer.java#L65) (uses CCTV images);
+ * [config/scenes.properties](../../../../resources/config/scenes.properties) (image-state manifest).
  *
  * Purpose: Loads bundled images, the scene manifest and decoded TV-noise frames, then serves cached
  * lookups.
@@ -31,7 +36,7 @@ import java.util.Properties;
  *
  * Summary: Gameplay supplies a room and state key; AssetManager supplies the corresponding
  * cached image. It does not decide where Gudo moves.
- * Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+ * [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
  */
 public final class AssetManager {
     private final Map<String, BufferedImage> scenes = new HashMap<>();
@@ -42,7 +47,10 @@ public final class AssetManager {
      * Decode five title portraits; load scenes.properties and decode each unique referenced image
      * once; require a default for all seven scenes. Decode all GIF frames and turn luminance into
      * alpha for white TV noise. Missing listed resources throw IOException during boot.
-     * Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * Related: [Main.java:114 (AssetManager call)](../Main.java#L114) (caller of AssetManager);
+     * [game/Scene.java:49 (Scene)](../game/Scene.java#L49) (scene enum constants used by AssetManager);
+     * [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (uses room images).
      */
     public AssetManager() throws IOException {
         String[] menuFiles = {"00_NORMAL.png", "01_HOLLOW_STARE.png", "02_DEAD_EYES.png", "03_BROKEN_SMILE.png", "04_LAST_FLICKER.png"};
@@ -52,10 +60,10 @@ public final class AssetManager {
                 if (menuRenders[i] == null) throw new IOException("Unsupported menu image: " + menuFiles[i]);
             }
         }
-        // The manifest maps keys such as cam03.occupied to a classpath image resource. | Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+        // The manifest maps keys such as cam03.occupied to a classpath image resource. | [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). | Related: [Main.java:114 (AssetManager call)](../Main.java#L114) (caller of AssetManager); [game/Scene.java:49 (Scene)](../game/Scene.java#L49) (scene enum constants used by AssetManager).
         Properties manifest = new Properties();
         try (InputStream stream = resource("/config/scenes.properties")) { manifest.load(stream); }
-        // Several state keys may share one file; decode that file only once. | Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+        // Several state keys may share one file; decode that file only once. | [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). | Related: [Main.java:114 (AssetManager call)](../Main.java#L114) (caller of AssetManager); [game/Scene.java:49 (Scene)](../game/Scene.java#L49) (scene enum constants used by AssetManager).
         Map<String, BufferedImage> loaded = new HashMap<>();
         for (String key : manifest.stringPropertyNames()) {
             String path = manifest.getProperty(key).strip();
@@ -67,12 +75,12 @@ public final class AssetManager {
             }
             scenes.put(key, image);
         }
-        // Every room needs a clean default image; broken required assets fail startup visibly. | Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+        // Every room needs a clean default image; broken required assets fail startup visibly. | [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). | Related: [Main.java:114 (AssetManager call)](../Main.java#L114) (caller of AssetManager); [game/Scene.java:49 (Scene)](../game/Scene.java#L49) (scene enum constants used by AssetManager).
         for (Scene scene : Scene.values()) {
             if (!scenes.containsKey(scene.id() + ".default")) throw new IOException("Missing default render: " + scene.id());
         }
-        // Unmodified source GIF is bundled with its attribution and CC BY-SA license. | Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
-        // Runtime frames turn black into transparency so noise overlays the actual room. | Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+        // Unmodified source GIF is bundled with its attribution and CC BY-SA license. | [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). | Related: [Main.java:114 (AssetManager call)](../Main.java#L114) (caller of AssetManager); [game/Scene.java:49 (Scene)](../game/Scene.java#L49) (scene enum constants used by AssetManager).
+        // Runtime frames turn black into transparency so noise overlays the actual room. | [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). | Related: [Main.java:114 (AssetManager call)](../Main.java#L114) (caller of AssetManager); [game/Scene.java:49 (Scene)](../game/Scene.java#L49) (scene enum constants used by AssetManager).
         try (InputStream stream = resource("/effects/television-static.gif");
              ImageInputStream imageStream = ImageIO.createImageInputStream(stream)) {
             ImageReader reader = ImageIO.getImageReadersByFormatName("gif").next();
@@ -92,43 +100,55 @@ public final class AssetManager {
         }
     }
 
-    // Unknown state names fall back to the room's default; listed-but-missing files fail during loading. | Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+    // Unknown state names fall back to the room's default; listed-but-missing files fail during loading. | [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). | Related: [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (office image client); [ui/rendering/CameraSceneRenderer.java:65 (render)](../ui/rendering/CameraSceneRenderer.java#L65) (camera image client).
     /*
      * Look up scene.id + dot + state in cached images; if the key is unknown return that scene
      * default. A manifest entry with a missing file already fails during construction instead of
      * silently falling back.
-     * Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * Related: [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (office image client);
+     * [ui/rendering/CameraSceneRenderer.java:65 (render)](../ui/rendering/CameraSceneRenderer.java#L65) (camera image client);
+     * [game/GameSession.java:247 (sceneState)](../game/GameSession.java#L247) (provides occupancy keys).
      */
     public BufferedImage scene(Scene scene, String state) {
         return scenes.getOrDefault(scene.id() + "." + state, scenes.get(scene.id() + ".default"));
     }
 
-    // Wrap frame indices so callers can animate the noise indefinitely. | Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+    // Wrap frame indices so callers can animate the noise indefinitely. | [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). | Related: [ui/VhsOverlay.java:49 (paint)](../ui/VhsOverlay.java#L49) (decoded-static client); [ui/rendering/VhsRendererDecorator.java:77 (render)](../ui/rendering/VhsRendererDecorator.java#L77) (camera interference client).
     /*
      * Use floorMod to wrap positive or negative frame indices through the cached GIF frames. The
      * returned image is shared, so callers should draw rather than mutate it.
-     * Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * Related: [ui/VhsOverlay.java:49 (paint)](../ui/VhsOverlay.java#L49) (decoded-static client);
+     * [ui/rendering/VhsRendererDecorator.java:77 (render)](../ui/rendering/VhsRendererDecorator.java#L77) (camera interference client).
      */
     public BufferedImage noise(int frame) { return noise[Math.floorMod(frame, noise.length)]; }
     /*
      * Return the decoded GIF frame count. The bundled static contains five distinct
      * animation frames.
-     * Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * Related: [ui/VhsOverlay.java:49 (paint)](../ui/VhsOverlay.java#L49) (decoded-static client);
+     * [ui/rendering/VhsRendererDecorator.java:77 (render)](../ui/rendering/VhsRendererDecorator.java#L77) (camera interference client).
      */
     public int noiseFrameCount() { return noise.length; }
     /*
      * Return one of the five decoded title portraits by index. The caller supplies a valid 0..4
      * index; this method does not clamp it.
-     * Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * Related: [ui/MenuPanel.java:187 (render)](../ui/MenuPanel.java#L187) (draws flicker portraits);
+     * [ui/BackdropPanel.java:53 (backdrop)](../ui/BackdropPanel.java#L53) (secondary-page portrait background).
      */
     public BufferedImage menuRender(int index) { return menuRenders[index]; }
 
-    // Read from the classpath, so the same resource lookup works inside the packaged JAR. | Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
-    // The caller owns and closes the returned stream. | Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+    // Read from the classpath, so the same resource lookup works inside the packaged JAR. | [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). | Related: [audio/AudioService.java:87 (resource call)](../audio/AudioService.java#L87) (caller of resource); [Main.java:72 (launch)](../Main.java#L72) (loads assets at startup).
+    // The caller owns and closes the returned stream. | [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28). | Related: [audio/AudioService.java:87 (resource call)](../audio/AudioService.java#L87) (caller of resource); [Main.java:72 (launch)](../Main.java#L72) (loads assets at startup).
     /*
      * Open a classpath resource, including when the game is packaged in a JAR. Throw IOException if
      * absent; the caller must close the stream using try-with-resources.
-     * Reviewer (42-page edition): [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * [p. 28: AssetManager](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+     * Related: [audio/AudioService.java:87 (resource call)](../audio/AudioService.java#L87) (caller of resource);
+     * [Main.java:72 (launch)](../Main.java#L72) (loads assets at startup);
+     * [ui/GamePanel.java:477 (renderOffice)](../ui/GamePanel.java#L477) (uses room images).
      */
     public static InputStream resource(String path) throws IOException {
         InputStream stream = AssetManager.class.getResourceAsStream(path);

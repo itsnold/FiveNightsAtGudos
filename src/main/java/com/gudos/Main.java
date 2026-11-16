@@ -9,9 +9,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-/** Entry point: creates the window, loads local data/assets, then hands control to Application. Reviewer (42-page edition): [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20). */
+/** Entry point: creates the window, loads local data/assets, then hands control to Application. [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20). Related: [Application.java:110 (Application)](Application.java#L110) (receives the loaded dependencies); [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen). */
 /*
  * Main
+ *
+ * Related: [Application.java:110 (Application)](Application.java#L110) (receives the loaded dependencies);
+ * [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen);
+ * [persistence/AppPaths.java:54 (resolve)](persistence/AppPaths.java#L54) (save-file locations);
+ * [assets/AssetManager.java:55 (AssetManager)](assets/AssetManager.java#L55) (loads bundled resources).
  *
  * Purpose: Starts the desktop application and loads its dependencies.
  *
@@ -27,13 +32,16 @@ import java.awt.image.BufferedImage;
  *
  * Summary: Main is the entry point, not the gameplay loop. It prepares the program and hands
  * control to Application.
- * Reviewer (42-page edition): [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+ * [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
  */
 public final class Main {
     /*
      * Private constructor prevents creating utility entry-point objects. main and launch are static;
      * this is not a Singleton instance.
-     * Reviewer (42-page edition): [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+     * [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+     * Related: [Application.java:110 (Application)](Application.java#L110) (receives the loaded dependencies);
+     * [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen);
+     * [persistence/AppPaths.java:54 (resolve)](persistence/AppPaths.java#L54) (save-file locations).
      */
     private Main() { }
 
@@ -41,10 +49,13 @@ public final class Main {
      * Queue launch on the Swing event dispatch thread, then return. Swing component creation belongs
      * on that thread; doing all startup synchronously here would either use the wrong thread or
      * block the window.
-     * Reviewer (42-page edition): [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+     * [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+     * Related: [Application.java:110 (Application)](Application.java#L110) (receives loaded dependencies);
+     * [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen);
+     * [persistence/AppPaths.java:54 (resolve)](persistence/AppPaths.java#L54) (save locations).
      */
     public static void main(String[] args) {
-        // Swing components must be created and changed on its event dispatch thread (EDT). | Reviewer (42-page edition): [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+        // Swing components must be created and changed on its event dispatch thread (EDT). | [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20). | Related: [Application.java:110 (Application)](Application.java#L110) (receives loaded dependencies); [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen).
         SwingUtilities.invokeLater(Main::launch);
     }
 
@@ -53,11 +64,14 @@ public final class Main {
      * doInBackground loads writable paths, preferences, SQLite progress and assets; done stops the
      * loading timer and constructs Application on the EDT. A failed boot displays the real cause and
      * closes the window.
-     * Reviewer (42-page edition): [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+     * [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+     * Related: [Application.java:110 (Application)](Application.java#L110) (receives loaded dependencies);
+     * [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen);
+     * [persistence/AppPaths.java:54 (resolve)](persistence/AppPaths.java#L54) (save locations).
      */
     private static void launch() {
         try { UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()); }
-        catch (Exception ignored) { /* Platform fallback remains usable. Reviewer (42-page edition): [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20). */ }
+        catch (Exception ignored) { /* Platform fallback remains usable. [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20). Related: [Application.java:110 (Application)](Application.java#L110) (receives loaded dependencies); [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen). */ }
         UIManager.put("OptionPane.background", new Color(18, 18, 18));
         UIManager.put("Panel.background", new Color(18, 18, 18));
         UIManager.put("OptionPane.messageForeground", Theme.PAPER);
@@ -76,7 +90,7 @@ public final class Main {
         frame.setMinimumSize(new Dimension(Math.min(960, screen.width - 40), Math.min(580, screen.height - 40)));
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-        // Animate the loading screen while the worker below performs slower disk operations. | Reviewer (42-page edition): [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+        // Animate the loading screen while the worker below performs slower disk operations. | [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20). | Related: [Application.java:110 (Application)](Application.java#L110) (receives loaded dependencies); [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen).
         Timer loadingTimer = new Timer(33, event -> { loading.tick(0.033); loading.repaint(); });
         loadingTimer.start();
         new SwingWorker<Boot, Void>() {
@@ -85,10 +99,13 @@ public final class Main {
              * first, because the stores need those paths; load Settings before profile progress,
              * because the saved playerName selects the profile. Return every dependency in one Boot
              * value.
-             * Reviewer (42-page edition): [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+             * [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+             * Related: [Application.java:110 (Application)](Application.java#L110) (receives loaded dependencies);
+             * [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen);
+             * [persistence/AppPaths.java:54 (resolve)](persistence/AppPaths.java#L54) (save locations).
              */
             @Override protected Boot doInBackground() throws Exception {
-                // Resolve the save folder, read preferences, open SQLite, and load this profile. | Reviewer (42-page edition): [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+                // Resolve the save folder, read preferences, open SQLite, and load this profile. | [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20). | Related: [Application.java:110 (Application)](Application.java#L110) (receives loaded dependencies); [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen).
                 AppPaths paths = AppPaths.resolve();
                 SettingsStore store = new SettingsStore(paths.settings());
                 Settings settings = store.load();
@@ -103,10 +120,13 @@ public final class Main {
              * completion if the window was closed; otherwise get the Boot result and create
              * Application. Unwrap/report a failed worker instead of opening a partly initialized
              * game.
-             * Reviewer (42-page edition): [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+             * [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+             * Related: [Application.java:110 (Application)](Application.java#L110) (receives loaded dependencies);
+             * [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen);
+             * [persistence/AppPaths.java:54 (resolve)](persistence/AppPaths.java#L54) (save locations).
              */
             @Override protected void done() {
-                // SwingWorker returns here on the EDT, so it is safe to install the game UI. | Reviewer (42-page edition): [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+                // SwingWorker returns here on the EDT, so it is safe to install the game UI. | [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20). | Related: [Application.java:110 (Application)](Application.java#L110) (receives loaded dependencies); [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen).
                 loadingTimer.stop();
                 if (!frame.isDisplayable()) return;
                 try {
@@ -124,11 +144,13 @@ public final class Main {
         }.execute();
     }
 
-    // Draw the window icon in memory; no separate icon file is needed. | Reviewer (42-page edition): [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+    // Draw the window icon in memory; no separate icon file is needed. | [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20). | Related: [ui/Theme.java:114 (quality)](ui/Theme.java#L114) (drawing setup); [ui/Theme.java:131 (text)](ui/Theme.java#L131) (icon typography).
     /*
      * Draw a small G icon into an in-memory image and dispose its Graphics2D. This avoids relying on
      * another icon resource file.
-     * Reviewer (42-page edition): [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+     * [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+     * Related: [ui/Theme.java:114 (quality)](ui/Theme.java#L114) (drawing setup);
+     * [ui/Theme.java:131 (text)](ui/Theme.java#L131) (icon typography).
      */
     private static Image icon() {
         BufferedImage image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
@@ -143,12 +165,15 @@ public final class Main {
         return image;
     }
 
-    // Immutable bundle carrying the worker's results back to the UI thread. | Reviewer (42-page edition): [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+    // Immutable bundle carrying the worker's results back to the UI thread. | [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20). | Related: [Application.java:110 (Application)](Application.java#L110) (receives the loaded dependencies); [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen).
     /*
      * Boot
      *
      * Immutable startup result bundle carried from SwingWorker background work to done on EDT.
-     * Reviewer (42-page edition): [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+     * [p. 16: threads and audio](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-16); [p. 20: Main](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-20).
+     * Related: [Application.java:110 (Application)](Application.java#L110) (receives the loaded dependencies);
+     * [ui/LoadingPanel.java:38 (LoadingPanel)](ui/LoadingPanel.java#L38) (startup screen);
+     * [persistence/AppPaths.java:54 (resolve)](persistence/AppPaths.java#L54) (save-file locations).
      */
     private record Boot(AppPaths paths, SettingsStore store, Settings settings, Database database,
                         Progress progress, AssetManager assets) { }

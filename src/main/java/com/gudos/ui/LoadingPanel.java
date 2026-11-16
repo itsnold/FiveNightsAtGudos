@@ -2,9 +2,13 @@ package com.gudos.ui;
 
 import java.awt.*;
 
-/** Animated waiting screen; the calling worker performs loading and decides when to leave it. Reviewer (42-page edition): [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23). */
+/** Animated waiting screen; the calling worker performs loading and decides when to leave it. [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23). Related: [Main.java:72 (launch)](../Main.java#L72) (startup loading client); [Application.java:319 (page)](../Application.java#L319) (records loading client). */
 /*
  * LoadingPanel
+ *
+ * Related: [Main.java:72 (launch)](../Main.java#L72) (startup loading client);
+ * [Application.java:319 (page)](../Application.java#L319) (records loading client);
+ * [ui/ScenePanel.java:219 (tick)](ScenePanel.java#L219) (animation age and repaint infrastructure).
  *
  * Purpose: Draws a waiting message and animated dots.
  *
@@ -18,7 +22,7 @@ import java.awt.*;
  *
  * Summary: Animated loading is evidence that the EDT can repaint while another thread does
  * IO.
- * Reviewer (42-page edition): [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23).
+ * [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23).
  */
 public final class LoadingPanel extends ScenePanel {
     private final String message;
@@ -26,14 +30,20 @@ public final class LoadingPanel extends ScenePanel {
     /*
      * Retain the human loading message. Rendering animates dots while another component owns actual
      * work.
-     * Reviewer (42-page edition): [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23).
+     * [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23).
+     * Related: [Application.java:294 (LoadingPanel call)](../Application.java#L294) (caller of LoadingPanel);
+     * [Main.java:85 (LoadingPanel call)](../Main.java#L85) (caller of LoadingPanel);
+     * [ui/ScenePanel.java:219 (tick)](ScenePanel.java#L219) (animation age and repaint infrastructure).
      */
     public LoadingPanel(String message) { this.message = message; }
 
     /*
      * Fill black, animate one-to-three dots from panel age and center the supplied message. It never
      * starts IO; the caller owns the background task.
-     * Reviewer (42-page edition): [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23).
+     * [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23).
+     * Related: [ui/Theme.java:131 (text)](Theme.java#L131) (used by render);
+     * [Main.java:72 (launch)](../Main.java#L72) (startup loading client);
+     * [Application.java:319 (page)](../Application.java#L319) (records loading client).
      */
     @Override protected void render(Graphics2D g) {
         g.setColor(Theme.BACKGROUND);
