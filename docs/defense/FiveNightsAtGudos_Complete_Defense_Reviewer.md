@@ -4,6 +4,67 @@ The PDF edition is **42 pages**, compiled with XeLaTeX. The canonical typesettin
 
 This edition covers all 45 application Java files, the important algorithms and decisions, exact demonstration paths, pattern participants and 60 practice questions. Detailed explanations of all 313 explicitly declared methods/constructors remain beside the source methods as ordinary documentation.
 
+## Quick topic index (unnumbered front page)
+
+The PDF begins with one unnumbered topic index, followed by the original printed pages 1–42. It contains 43 PDF sheets in total. Source-comment references use the printed page numbers. Click the index page numbers in the PDF to jump directly to the topic.
+
+| Topic / feature | Printed page |
+| --- | --- |
+| **Start, navigate and demonstrate** | |
+| Project overview / Java vocabulary | [3](Reviewer_Pages.md#page-3) |
+| Build and launch / find code | [4](Reviewer_Pages.md#page-4) |
+| Normal shift / controls walkthrough | [5](Reviewer_Pages.md#page-5) |
+| Settings / profiles / records | [6](Reviewer_Pages.md#page-6) |
+| Hidden game / five paper clicks | [7](Reviewer_Pages.md#page-7) |
+| **Rules and visible behavior** | |
+| Clock / power / event deadlines | [8](Reviewer_Pages.md#page-8) |
+| Gudo route / difficulty / flashlight | [9](Reviewer_Pages.md#page-9) |
+| Input coordinates / panorama | [10](Reviewer_Pages.md#page-10) |
+| Pause / resume / abandonment | [17](Reviewer_Pages.md#page-17) |
+| Monitor / camera / accepted input | [18](Reviewer_Pages.md#page-18) |
+| HUD / camera feed / light drawing | [19](Reviewer_Pages.md#page-19) |
+| **Data and saving** | |
+| SQLite tables / relationships | [11](Reviewer_Pages.md#page-11) |
+| Transactions / rollback / UUID retry | [12](Reviewer_Pages.md#page-12) |
+| Save folder / final run receipt | [26](Reviewer_Pages.md#page-26) |
+| Settings and shift-log text stores | [31](Reviewer_Pages.md#page-31) |
+| Records table / preference screens | [25](Reviewer_Pages.md#page-25) |
+| **Patterns and design decisions** | |
+| New Game / startNight Facade | [13](Reviewer_Pages.md#page-13) |
+| AudioService Facade | [13](Reviewer_Pages.md#page-13) |
+| Renderer Decorator / effect order | [14](Reviewer_Pages.md#page-14) |
+| SecretLevelBuilder / Builder | [15](Reviewer_Pages.md#page-15) |
+| Template Method / inheritance / OOP | [15](Reviewer_Pages.md#page-15) |
+| Threads / EDT / audio resources | [16](Reviewer_Pages.md#page-16) |
+| **Find an implementation** | |
+| Application: navigation and saves | [17](Reviewer_Pages.md#page-17) |
+| GameSession: normal-night model | [18](Reviewer_Pages.md#page-18) |
+| GamePanel: input and rendering | [19](Reviewer_Pages.md#page-19) |
+| Main / MenuPanel / Navigation | [20](Reviewer_Pages.md#page-20) |
+| Extras / night selection / info | [21](Reviewer_Pages.md#page-21) |
+| ScenePanel / buttons / backdrop | [22](Reviewer_Pages.md#page-22) |
+| Theme / loading / VHS overlay | [23](Reviewer_Pages.md#page-23) |
+| Pause / result / jumpscare | [24](Reviewer_Pages.md#page-24) |
+| Settings / RecordsPanel | [25](Reviewer_Pages.md#page-25) |
+| Paths / Progress / RunRecord | [26](Reviewer_Pages.md#page-26) |
+| Scene / Outcome / CameraMotion | [27](Reviewer_Pages.md#page-27) |
+| Assets / panorama / camera renderer | [28](Reviewer_Pages.md#page-28) |
+| Renderer interface and wrappers | [29](Reviewer_Pages.md#page-29) |
+| Darkness / AudioService / Sound | [30](Reviewer_Pages.md#page-30) |
+| Chiptune / settings / shift log | [31](Reviewer_Pages.md#page-31) |
+| Database / SecretLevel / Builder | [32](Reviewer_Pages.md#page-32) |
+| GudoEncounter / secret runtime | [33](Reviewer_Pages.md#page-33) |
+| **Questions and presentation** | |
+| Questions 1--10: overview / flow | [34](Reviewer_Pages.md#page-34) |
+| Questions 11--20: patterns / Java | [35](Reviewer_Pages.md#page-35) |
+| Questions 21--30: rules / timing | [36](Reviewer_Pages.md#page-36) |
+| Questions 31--40: Gudo / secret | [37](Reviewer_Pages.md#page-37) |
+| Questions 41--50: collision / data | [38](Reviewer_Pages.md#page-38) |
+| Questions 51--60: failures / limits | [39](Reviewer_Pages.md#page-39) |
+| Five-minute rehearsal / snags | [40](Reviewer_Pages.md#page-40) |
+| Limitations / source evidence | [41](Reviewer_Pages.md#page-41) |
+| Alphabetical index: all 45 Java files | [42](Reviewer_Pages.md#page-42) |
+
 ## Main ideas
 
 Main prepares dependencies; Application coordinates screens and workers; GameSession/GudoEncounter enforce normal-night rules; GamePanel translates input and draws. SQLite owns local progress/history, settings.txt stores preferences, and shift-log.txt is a readable report.

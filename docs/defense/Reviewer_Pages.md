@@ -6,6 +6,127 @@ This page index reproduces the text of the attached 42-page study guide. Each nu
 
 The PDF describes source snapshot `e9f0ff45`. Its source links intentionally remain pinned to that snapshot, so adding comments does not invalidate its original line references. The PDF itself has not been repaginated.
 
+The PDF now begins with an unnumbered topic index. The original printed pages 1–42 and their anchors below remain unchanged; physical PDF sheet N+1 contains printed page N.
+
+## Front index (unnumbered)
+
+```text
+Quick topic index
+Find the topic, then click its page number. This front index is not part of the 42 numbered
+reviewer pages. References below and in source comments use the printed page numbers; the cover
+that follows is page 1.
+Topic / feature
+Page
+Start, navigate and demonstrate
+Project overview / Java vocabulary
+3
+Build and launch / find code
+4
+Normal shift / controls walkthrough
+5
+Settings / profiles / records
+6
+Hidden game / five paper clicks
+7
+Rules and visible behavior
+Clock / power / event deadlines
+8
+Gudo route / diﬀiculty / flashlight
+9
+Input coordinates / panorama
+10
+Pause / resume / abandonment
+17
+Monitor / camera / accepted input
+18
+HUD / camera feed / light drawing
+19
+Data and saving
+SQLite tables / relationships
+11
+Transactions / rollback / UUID retry
+12
+Save folder / final run receipt
+26
+Settings and shift-log text stores
+31
+Records table / preference screens
+25
+Patterns and design decisions
+New Game / startNight Facade
+13
+AudioService Facade
+13
+Renderer Decorator / effect order
+14
+SecretLevelBuilder / Builder
+15
+Template Method / inheritance / OOP
+15
+Threads / EDT / audio resources
+16
+Topic / feature
+Page
+Find an implementation
+Application: navigation and saves
+17
+GameSession: normal-night model
+18
+GamePanel: input and rendering
+19
+Main / MenuPanel / Navigation
+20
+Extras / night selection / info
+21
+ScenePanel / buttons / backdrop
+22
+Theme / loading / VHS overlay
+23
+Pause / result / jumpscare
+24
+Settings / RecordsPanel
+25
+Paths / Progress / RunRecord
+26
+Scene / Outcome / CameraMotion
+27
+Assets / panorama / camera renderer
+28
+Renderer interface and wrappers
+29
+Darkness / AudioService / Sound
+30
+Chiptune / settings / shift log
+31
+Database / SecretLevel / Builder
+32
+GudoEncounter / secret runtime
+33
+Questions and presentation
+Questions 1–10: overview / flow
+34
+Questions 11–20: patterns / Java
+35
+Questions 21–30: rules / timing
+36
+Questions 31–40: Gudo / secret
+37
+Questions 41–50: collision / data
+38
+Questions 51–60: failures / limits
+39
+Five-minute rehearsal / snags
+40
+Limitations / source evidence
+41
+Alphabetical index: all 45 Java files
+42
+If you are asked to explain a feature
+Open the topic page, then find its Java file using page 42. Follow this order: what it does →
+where it lives →how it works →why the choice helps. For New Game, start with page 13,
+then Application on page 17.
+```
+
 ## Page 1
 
 PDF page **1 / 42**.

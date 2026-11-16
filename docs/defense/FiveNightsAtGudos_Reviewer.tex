@@ -31,6 +31,73 @@
 \lstset{language=Java,basicstyle=\ttfamily\small,keywordstyle=\color{Teal}\bfseries,commentstyle=\color{Muted},stringstyle=\color{Gold},backgroundcolor=\color{Pale},frame=single,rulecolor=\color{Line},breaklines=true,columns=fullflexible,keepspaces=true,showstringspaces=false,aboveskip=6pt,belowskip=6pt,framesep=6pt}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}\renewcommand{\arraystretch}{1.16}\setlength{\tabcolsep}{5pt}
 \begin{document}
+\pagenumbering{Roman}
+\thispagestyle{empty}\pdfbookmark[0]{Quick topic index (unnumbered)}{front-index}
+\section*{Quick topic index}
+\textbf{Find the topic, then click its page number.} This front index is not part of the 42 numbered reviewer pages. References below and in source comments use the \textbf{printed page numbers}; the cover that follows is page 1.
+\par\vspace{3pt}
+\begin{minipage}[t]{.485\linewidth}\fontsize{9}{11.3}\selectfont
+\begin{tabularx}{\linewidth}{@{}Xr@{}}\toprule\textbf{Topic / feature}&\textbf{Page}\\\midrule
+\multicolumn{2}{@{}l}{\rule{0pt}{17pt}\textbf{\color{Teal}Start, navigate and demonstrate}}\\
+Project overview / Java vocabulary&\hyperref[p:overview]{\pageref*{p:overview}}\\
+Build and launch / find code&\hyperref[p:run]{\pageref*{p:run}}\\
+Normal shift / controls walkthrough&\hyperref[p:normal]{\pageref*{p:normal}}\\
+Settings / profiles / records&\hyperref[p:extras]{\pageref*{p:extras}}\\
+Hidden game / five paper clicks&\hyperref[p:secret]{\pageref*{p:secret}}\\
+\multicolumn{2}{@{}l}{\rule{0pt}{17pt}\textbf{\color{Teal}Rules and visible behavior}}\\
+Clock / power / event deadlines&\hyperref[p:rules]{\pageref*{p:rules}}\\
+Gudo route / difficulty / flashlight&\hyperref[p:gudo]{\pageref*{p:gudo}}\\
+Input coordinates / panorama&\hyperref[p:render]{\pageref*{p:render}}\\
+Pause / resume / abandonment&\hyperref[p:application]{\pageref*{p:application}}\\
+Monitor / camera / accepted input&\hyperref[p:gamesession]{\pageref*{p:gamesession}}\\
+HUD / camera feed / light drawing&\hyperref[p:gamepanel]{\pageref*{p:gamepanel}}\\
+\multicolumn{2}{@{}l}{\rule{0pt}{17pt}\textbf{\color{Teal}Data and saving}}\\
+SQLite tables / relationships&\hyperref[p:data]{\pageref*{p:data}}\\
+Transactions / rollback / UUID retry&\hyperref[p:save]{\pageref*{p:save}}\\
+Save folder / final run receipt&\hyperref[p:files-7]{\pageref*{p:files-7}}\\
+Settings and shift-log text stores&\hyperref[p:files-12]{\pageref*{p:files-12}}\\
+Records table / preference screens&\hyperref[p:files-6]{\pageref*{p:files-6}}\\
+\multicolumn{2}{@{}l}{\rule{0pt}{17pt}\textbf{\color{Teal}Patterns and design decisions}}\\
+New Game / startNight Facade&\hyperref[p:facade]{\pageref*{p:facade}}\\
+AudioService Facade&\hyperref[p:facade]{\pageref*{p:facade}}\\
+Renderer Decorator / effect order&\hyperref[p:decorator]{\pageref*{p:decorator}}\\
+SecretLevelBuilder / Builder&\hyperref[p:builder]{\pageref*{p:builder}}\\
+Template Method / inheritance / OOP&\hyperref[p:builder]{\pageref*{p:builder}}\\
+Threads / EDT / audio resources&\hyperref[p:services]{\pageref*{p:services}}\\
+\bottomrule\end{tabularx}\end{minipage}\hfill\begin{minipage}[t]{.485\linewidth}\fontsize{9}{11.3}\selectfont
+\begin{tabularx}{\linewidth}{@{}Xr@{}}\toprule\textbf{Topic / feature}&\textbf{Page}\\\midrule
+\multicolumn{2}{@{}l}{\rule{0pt}{17pt}\textbf{\color{Teal}Find an implementation}}\\
+Application: navigation and saves&\hyperref[p:application]{\pageref*{p:application}}\\
+GameSession: normal-night model&\hyperref[p:gamesession]{\pageref*{p:gamesession}}\\
+GamePanel: input and rendering&\hyperref[p:gamepanel]{\pageref*{p:gamepanel}}\\
+Main / MenuPanel / Navigation&\hyperref[p:files-1]{\pageref*{p:files-1}}\\
+Extras / night selection / info&\hyperref[p:files-2]{\pageref*{p:files-2}}\\
+ScenePanel / buttons / backdrop&\hyperref[p:files-3]{\pageref*{p:files-3}}\\
+Theme / loading / VHS overlay&\hyperref[p:files-4]{\pageref*{p:files-4}}\\
+Pause / result / jumpscare&\hyperref[p:files-5]{\pageref*{p:files-5}}\\
+Settings / RecordsPanel&\hyperref[p:files-6]{\pageref*{p:files-6}}\\
+Paths / Progress / RunRecord&\hyperref[p:files-7]{\pageref*{p:files-7}}\\
+Scene / Outcome / CameraMotion&\hyperref[p:files-8]{\pageref*{p:files-8}}\\
+Assets / panorama / camera renderer&\hyperref[p:files-9]{\pageref*{p:files-9}}\\
+Renderer interface and wrappers&\hyperref[p:files-10]{\pageref*{p:files-10}}\\
+Darkness / AudioService / Sound&\hyperref[p:files-11]{\pageref*{p:files-11}}\\
+Chiptune / settings / shift log&\hyperref[p:files-12]{\pageref*{p:files-12}}\\
+Database / SecretLevel / Builder&\hyperref[p:files-13]{\pageref*{p:files-13}}\\
+GudoEncounter / secret runtime&\hyperref[p:files-14]{\pageref*{p:files-14}}\\
+\multicolumn{2}{@{}l}{\rule{0pt}{17pt}\textbf{\color{Teal}Questions and presentation}}\\
+Questions 1--10: overview / flow&\hyperref[p:qa-1]{\pageref*{p:qa-1}}\\
+Questions 11--20: patterns / Java&\hyperref[p:qa-2]{\pageref*{p:qa-2}}\\
+Questions 21--30: rules / timing&\hyperref[p:qa-3]{\pageref*{p:qa-3}}\\
+Questions 31--40: Gudo / secret&\hyperref[p:qa-4]{\pageref*{p:qa-4}}\\
+Questions 41--50: collision / data&\hyperref[p:qa-5]{\pageref*{p:qa-5}}\\
+Questions 51--60: failures / limits&\hyperref[p:qa-6]{\pageref*{p:qa-6}}\\
+Five-minute rehearsal / snags&\hyperref[p:rehearse]{\pageref*{p:rehearse}}\\
+Limitations / source evidence&\hyperref[p:limits]{\pageref*{p:limits}}\\
+Alphabetical index: all 45 Java files&\hyperref[p:index]{\pageref*{p:index}}\\
+\bottomrule\end{tabularx}\end{minipage}
+\par\vspace{7pt}
+\note{If you are asked to explain a feature}{Open the topic page, then find its Java file using page 42. Follow this order: \textbf{what it does $\rightarrow$ where it lives $\rightarrow$ how it works $\rightarrow$ why the choice helps}. For New Game, start with page 13, then Application on page 17.}
+\clearpage\pagenumbering{arabic}
 \thispagestyle{empty}\pdfbookmark[0]{Cover}{cover}
 \vspace*{7mm}
 {\sffamily\small\color{Gold}\textbf{JAVA DESKTOP PROJECT\quad /\quad STUDY EDITION}}\par\vspace{7mm}

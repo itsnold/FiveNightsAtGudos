@@ -1,6 +1,6 @@
 # Project documentation
 
-The project reviewer is a **42-page XeLaTeX document**, with readable typography, typeset equations, compact source-file cards, demonstration paths and 60 practice questions.
+The project reviewer contains **42 numbered content pages plus one unnumbered front index** (43 PDF sheets), typeset with XeLaTeX, with readable typography, typeset equations, compact source-file cards, demonstration paths and 60 practice questions.
 
 - [Typesetting source](FiveNightsAtGudos_Reviewer.tex)
 - [Text reference and file locator](FiveNightsAtGudos_Complete_Defense_Reviewer.md)
@@ -25,3 +25,5 @@ The Java cleanup removes presentation-oriented labels without changing executabl
 ## References from source comments
 
 Every existing Java comment includes a `Reviewer (42-page edition)` reference to its file card and, where applicable, a related concept page. Follow its link to [the page index](Reviewer_Pages.md), which reproduces the supplied PDF page text. For example, New Game / `startNight` links to page 13 (Facade) and the relevant file card. These numbers refer to the supplied 42-page PDF, not the earlier 45- or 131-page editions.
+
+The front topic index links directly to the existing printed pages 1–42; page 42 retains the alphabetical Java-file locator. The extra index sheet is not counted in the printed 42-page total. In a viewer that ignores PDF page labels, printed page N is physical sheet N+1. Existing source-comment references remain valid.
