@@ -16,7 +16,7 @@ import javax.swing.text.DocumentFilter;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 
-/** Edits a copy of the current preferences; Application owns saving and applying the submitted values. */
+/** Edits a copy of the current preferences; Application owns saving and applying the submitted values. Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25). */
 /*
  * SettingsPanel
  *
@@ -35,6 +35,7 @@ import java.awt.datatransfer.StringSelection;
  *
  * Summary: The view gathers values; Application performs IO and switches profiles only after
  * the save path succeeds.
+ * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
  */
 public final class SettingsPanel extends BackdropPanel {
     private final JTextField name;
@@ -49,6 +50,7 @@ public final class SettingsPanel extends BackdropPanel {
      * Build real name/volume/effects/fullscreen controls from current Settings. Install a sanitizing
      * DocumentFilter, custom slider/checkbox art, Apply -> navigation.saveSettings(values()), and
      * Copy Data Folder. Editing does not save until Apply.
+     * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
      */
     public SettingsPanel(AssetManager assets, Navigation navigation, Settings settings, AppPaths paths) {
         super(assets);
@@ -62,11 +64,12 @@ public final class SettingsPanel extends BackdropPanel {
         name.setSelectionColor(new Color(75, 75, 75));
         name.setBorder(new CompoundBorder(new LineBorder(Theme.LINE), new EmptyBorder(4, 13, 4, 13)));
         name.getAccessibleContext().setAccessibleName("Player name, up to 32 characters");
-        // Filter pasted/typed names before display: remove control characters and cap at 32 characters.
+        // Filter pasted/typed names before display: remove control characters and cap at 32 characters. | Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
         ((AbstractDocument) name.getDocument()).setDocumentFilter(new DocumentFilter() {
             /*
              * Route inserted text through the same replace filter so typing and paste share
              * sanitization and the name-length cap.
+             * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
              */
             @Override public void insertString(FilterBypass bypass, int offset, String text, AttributeSet attributes) throws BadLocationException {
                 replace(bypass, offset, 0, text, attributes);
@@ -75,6 +78,7 @@ public final class SettingsPanel extends BackdropPanel {
              * Remove control characters, compute capacity after replacing the selected span,
              * truncate inserted text to the remaining 32-character allowance and call the bypass.
              * Settings validates again at submission/load.
+             * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
              */
             @Override public void replace(FilterBypass bypass, int offset, int length, String text, AttributeSet attributes) throws BadLocationException {
                 String clean = text == null ? "" : text.replaceAll("\\p{Cntrl}", "");
@@ -90,6 +94,7 @@ public final class SettingsPanel extends BackdropPanel {
             /*
              * Draw the slider base track and filled section up to the current value using a copied
              * Graphics2D. This replaces appearance, not the JSlider value model.
+             * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
              */
             @Override public void paintTrack(Graphics graphics) {
                 Graphics2D g = (Graphics2D) graphics.create();
@@ -101,6 +106,7 @@ public final class SettingsPanel extends BackdropPanel {
             }
             /*
              * Draw the custom slider handle with focus-aware color, then dispose the graphics copy.
+             * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
              */
             @Override public void paintThumb(Graphics graphics) {
                 Graphics2D g = (Graphics2D) graphics.create();
@@ -112,6 +118,7 @@ public final class SettingsPanel extends BackdropPanel {
             /*
              * Intentionally draw no default focus ring for this slider UI. The custom thumb color
              * still reflects focus.
+             * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
              */
             @Override public void paintFocus(Graphics graphics) { }
         });
@@ -121,9 +128,9 @@ public final class SettingsPanel extends BackdropPanel {
         fullscreen = checkbox("Borderless fullscreen", settings.fullscreen());
         place(reducedEffects, 79, 451, 640, 36);
         place(fullscreen, 79, 524, 640, 36);
-        // Editing controls alone does not save; Apply submits a new immutable Settings value.
+        // Editing controls alone does not save; Apply submits a new immutable Settings value. | Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
         apply = place(new GameButton("APPLY SETTINGS    →", GameButton.Style.PRIMARY, () -> navigation.saveSettings(values())), 82, 595, 280, 44);
-        // Copy the actual resolved save directory, including any gudo.dataDir launch override.
+        // Copy the actual resolved save directory, including any gudo.dataDir launch override. | Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
         place(new GameButton("COPY DATA FOLDER", GameButton.Style.SECONDARY, () -> {
             try { Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(paths.directory().toString()), null); }
             catch (IllegalStateException error) { JOptionPane.showMessageDialog(this, "Clipboard unavailable.\n" + paths.directory()); }
@@ -133,6 +140,7 @@ public final class SettingsPanel extends BackdropPanel {
     /*
      * Create a real JCheckBox with transparent background, the shared font and custom
      * checked/unchecked icons. Swing still manages selection and input.
+     * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
      */
     private JCheckBox checkbox(String label, boolean selected) {
         JCheckBox box = new JCheckBox(label, selected);
@@ -147,25 +155,29 @@ public final class SettingsPanel extends BackdropPanel {
         return box;
     }
 
-    // Custom checkbox artwork; the JCheckBox still handles selection and input normally.
+    // Custom checkbox artwork; the JCheckBox still handles selection and input normally. | Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
     /*
      * CheckIcon
      *
      * A value carrying checked state while implementing Swing Icon drawing; JCheckBox owns
      * interaction.
+     * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
      */
     private record CheckIcon(boolean checked) implements Icon {
         /*
          * Report the custom checkbox icon width of 22 logical pixels to Swing layout.
+         * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
          */
         @Override public int getIconWidth() { return 22; }
         /*
          * Report the custom checkbox icon height of 22 logical pixels to Swing layout.
+         * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
          */
         @Override public int getIconHeight() { return 22; }
         /*
          * Draw the custom checkbox square/focus color and checkmark from the record checked flag.
          * Copy/dispose graphics so the icon does not alter later painting.
+         * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
          */
         @Override public void paintIcon(Component component, Graphics graphics, int x, int y) {
             Graphics2D g = (Graphics2D) graphics.create();
@@ -184,23 +196,26 @@ public final class SettingsPanel extends BackdropPanel {
         }
     }
 
-    // Read the form as one value object; Settings validates/clamps the values again.
+    // Read the form as one value object; Settings validates/clamps the values again. | Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
     /*
      * Read all four form controls and construct a new validated Settings value. Reading the form
      * alone does not persist it.
+     * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
      */
     public Settings values() { return new Settings(name.getText(), volume.getValue(), reducedEffects.isSelected(), fullscreen.isSelected()); }
 
     /*
      * Update the checkbox after Application successfully persists/applies an F11 change while this
      * form is visible.
+     * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
      */
     public void setFullscreen(boolean value) { fullscreen.setSelected(value); }
 
-    // Prevent another Apply request while the storage worker is still processing this one.
+    // Prevent another Apply request while the storage worker is still processing this one. | Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
     /*
      * Disable Apply while an async save is active and update status text. Application owns the busy
      * guard as well as this visual feedback.
+     * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
      */
     public void setSaving(boolean saving) {
         apply.setEnabled(!saving);
@@ -210,6 +225,7 @@ public final class SettingsPanel extends BackdropPanel {
     /*
      * Draw labels/current volume, explain the three save files, show the resolved folder and status.
      * Actual controls and Apply callback remain ordinary Swing children.
+     * Reviewer (42-page edition): [p. 25: SettingsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
      */
     @Override protected void render(Graphics2D g) {
         pageChrome(g, "Options", "");

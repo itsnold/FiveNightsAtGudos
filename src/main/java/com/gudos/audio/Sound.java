@@ -1,6 +1,6 @@
 package com.gudos.audio;
 
-/** Named cues have gains relative to master volume; a null path means Chiptune synthesizes them. */
+/** Named cues have gains relative to master volume; a null path means Chiptune synthesizes them. Reviewer (42-page edition): [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30). */
 /*
  * Sound
  *
@@ -17,6 +17,7 @@ package com.gudos.audio;
  *
  * Summary: Sound is metadata, AudioService performs playback, and GamePanel decides when
  * gameplay cues should occur.
+ * Reviewer (42-page edition): [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
  */
 public enum Sound {
     MENU_MUSIC("music/menu-darkness.wav", 0.65f),
@@ -59,16 +60,19 @@ public enum Sound {
     /*
      * Store a null path for synthesized secret cues or prefix a WAV path with /audio/. Retain
      * relative gain; AudioService later combines it with master volume.
+     * Reviewer (42-page edition): [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
      */
     Sound(String path, float gain) { this.path = path == null ? null : "/audio/" + path; this.gain = gain; }
     /*
      * Read the resource path, or null for a synthesized secret cue. This accessor does not advance
      * time, save data or change the model; callers use it to draw or coordinate behavior.
+     * Reviewer (42-page edition): [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
      */
     public String path() { return path; }
     /*
      * Read the sound multiplier relative to master volume. This accessor does not advance time, save
      * data or change the model; callers use it to draw or coordinate behavior.
+     * Reviewer (42-page edition): [p. 30: Sound](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-30).
      */
     public float gain() { return gain; }
 }

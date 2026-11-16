@@ -13,7 +13,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/** Read-only table built from attempts already loaded by Application's storage worker. */
+/** Read-only table built from attempts already loaded by Application's storage worker. Reviewer (42-page edition): [p. 25: RecordsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25). */
 /*
  * RecordsPanel
  *
@@ -31,6 +31,7 @@ import java.util.List;
  *
  * Summary: RecordsPanel displays saved history. Database.loadRuns performs
  * filtering/order/limit, and loadProgress supplies totals.
+ * Reviewer (42-page edition): [p. 25: RecordsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
  */
 public final class RecordsPanel extends BackdropPanel {
     private final String player;
@@ -41,6 +42,7 @@ public final class RecordsPanel extends BackdropPanel {
      * Receive already-loaded profile summary and recent rows, install Back, and if nonempty build a
      * read-only five-column JTable with local-zone timestamps, striped cells and scroll pane. No
      * JDBC runs in this constructor.
+     * Reviewer (42-page edition): [p. 25: RecordsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
      */
     public RecordsPanel(AssetManager assets, Navigation navigation, String player, Progress progress, List<RunRecord> runs) {
         super(assets);
@@ -49,16 +51,17 @@ public final class RecordsPanel extends BackdropPanel {
         empty = runs.isEmpty();
         backButton(navigation);
         if (empty) return;
-        // Stored Instants represent absolute timestamps; display them in this computer's local timezone.
+        // Stored Instants represent absolute timestamps; display them in this computer's local timezone. | Reviewer (42-page edition): [p. 25: RecordsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
         DateTimeFormatter date = DateTimeFormatter.ofPattern("MMM dd, yyyy  HH:mm").withZone(ZoneId.systemDefault());
         DefaultTableModel model = new DefaultTableModel(new String[]{"FINISHED", "NIGHT", "RESULT", "TIME ON DUTY", "POWER LEFT"}, 0) {
             /*
              * Always return false for every row/column. The history table is a display of saved
              * results, not an editor for the underlying database.
+             * Reviewer (42-page edition): [p. 25: RecordsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
              */
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
-        // Convert typed game results into the five columns shown to the player. No SQL runs in this panel.
+        // Convert typed game results into the five columns shown to the player. No SQL runs in this panel. | Reviewer (42-page edition): [p. 25: RecordsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
         for (RunRecord run : runs) model.addRow(new Object[]{date.format(run.endedAt()), "%02d".formatted(run.night()), run.outcome().label(), run.durationLabel(), "%d%%".formatted(Math.round(run.powerRemaining()))});
         JTable table = new JTable(model);
         table.setFont(Theme.mono(14));
@@ -82,6 +85,7 @@ public final class RecordsPanel extends BackdropPanel {
             /*
              * Reuse Swing default cell rendering, add padding, alternate row backgrounds and color
              * completed outcomes. It only styles existing values; it does not query or write SQL.
+             * Reviewer (42-page edition): [p. 25: RecordsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
              */
             @Override public Component getTableCellRendererComponent(JTable t, Object value, boolean selected, boolean focus, int row, int column) {
                 super.getTableCellRendererComponent(t, value, selected, focus, row, column);
@@ -103,10 +107,11 @@ public final class RecordsPanel extends BackdropPanel {
         place(scroll, 82, 331, 1116, 272);
     }
 
-    // Summary counters cover all this profile's attempts, even though only the newest 200 rows are loaded.
+    // Summary counters cover all this profile's attempts, even though only the newest 200 rows are loaded. | Reviewer (42-page edition): [p. 25: RecordsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
     /*
      * Draw summary counters for this profile and the table empty-state message when needed. Counts
      * cover all attempts while the list query loads at most 200 recent rows.
+     * Reviewer (42-page edition): [p. 25: RecordsPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-25).
      */
     @Override protected void render(Graphics2D g) {
         pageChrome(g, "THE SHIFT REGISTER", "Saved locally in SQLite. Showing the latest 200 attempts for this player.");

@@ -2,7 +2,7 @@ package com.gudos.ui;
 
 import java.awt.*;
 
-/** Animated waiting screen; the calling worker performs loading and decides when to leave it. */
+/** Animated waiting screen; the calling worker performs loading and decides when to leave it. Reviewer (42-page edition): [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23). */
 /*
  * LoadingPanel
  *
@@ -18,6 +18,7 @@ import java.awt.*;
  *
  * Summary: Animated loading is evidence that the EDT can repaint while another thread does
  * IO.
+ * Reviewer (42-page edition): [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23).
  */
 public final class LoadingPanel extends ScenePanel {
     private final String message;
@@ -25,12 +26,14 @@ public final class LoadingPanel extends ScenePanel {
     /*
      * Retain the human loading message. Rendering animates dots while another component owns actual
      * work.
+     * Reviewer (42-page edition): [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23).
      */
     public LoadingPanel(String message) { this.message = message; }
 
     /*
      * Fill black, animate one-to-three dots from panel age and center the supplied message. It never
      * starts IO; the caller owns the background task.
+     * Reviewer (42-page edition): [p. 23: LoadingPanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-23).
      */
     @Override protected void render(Graphics2D g) {
         g.setColor(Theme.BACKGROUND);

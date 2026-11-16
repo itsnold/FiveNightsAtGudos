@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-/** SQLite via JDBC. Connections are short-lived and all calls belong on the IO executor. */
+/** SQLite via JDBC. Connections are short-lived and all calls belong on the IO executor. Reviewer (42-page edition): [p. 11: save files and schema](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-11); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32). */
 /*
  * Database
  *
@@ -34,6 +34,7 @@ import java.util.List;
  * Summary: The attempt insert and unlock update share one SQLite transaction. The text report
  * is a second operation outside that transaction. A failed text append may follow a committed
  * database save.
+ * Reviewer (42-page edition): [p. 12: save and retry](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-12); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
  */
 public final class Database {
     private final String url;
@@ -43,19 +44,20 @@ public final class Database {
      * Ensure profiles/progress/night_runs exist; rebuild legacy outcome-constrained tables in
      * transactions for supported versions, preserve existing rows/indexes, leave legacy completion
      * flags untouched and set user_version=5. Each connection enables foreign keys and lock timeout.
+     * Reviewer (42-page edition): [p. 12: save and retry](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-12); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
      */
     public Database(Path file) throws SQLException {
-        // SQLite is an embedded database file; there is no separate database server to connect to.
+        // SQLite is an embedded database file; there is no separate database server to connect to. | Reviewer (42-page edition): [p. 11: save files and schema](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-11); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
         url = "jdbc:sqlite:" + file.toAbsolutePath();
         try (Connection connection = connect(); Statement sql = connection.createStatement()) {
-            // Write-ahead logging lets SQLite coordinate reads with committed writes.
+            // Write-ahead logging lets SQLite coordinate reads with committed writes. | Reviewer (42-page edition): [p. 11: save files and schema](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-11); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
             sql.execute("PRAGMA journal_mode=WAL");
             int schemaVersion;
             try (ResultSet version = sql.executeQuery("PRAGMA user_version")) {
                 schemaVersion = version.next() ? version.getInt(1) : 0;
                 if (schemaVersion > 5) throw new SQLException("This database belongs to a newer game version.");
             }
-            // profiles identifies a player by a unique, case-insensitive local name.
+            // profiles identifies a player by a unique, case-insensitive local name. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
             sql.execute("""
                     CREATE TABLE IF NOT EXISTS profiles (
                         id INTEGER PRIMARY KEY,
@@ -63,7 +65,7 @@ public final class Database {
                         created_at TEXT NOT NULL
                     )
                     """);
-            // One progress row per profile holds unlock state, not individual attempt history.
+            // One progress row per profile holds unlock state, not individual attempt history. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
             sql.execute("""
                     CREATE TABLE IF NOT EXISTS progress (
                         profile_id INTEGER PRIMARY KEY REFERENCES profiles(id),
@@ -73,8 +75,8 @@ public final class Database {
                     )
                     """);
             sql.execute(runsTable("night_runs"));
-            // Version 2 adds CAUGHT as an allowed outcome. Rebuild/copy the old constrained table
-            // inside a transaction so a migration failure can restore the previous schema/data.
+            // Version 2 adds CAUGHT as an allowed outcome. Rebuild/copy the old constrained table | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
+            // inside a transaction so a migration failure can restore the previous schema/data. | Reviewer (42-page edition): [p. 12: save and retry](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-12); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
             if (schemaVersion == 1) {
                 connection.setAutoCommit(false);
                 try {
@@ -90,7 +92,7 @@ public final class Database {
                     throw error;
                 } finally { connection.setAutoCommit(true); }
             }
-            // Match the records screen's lookup: one profile, most recent end time first.
+            // Match the records screen's lookup: one profile, most recent end time first. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
             sql.execute("CREATE INDEX IF NOT EXISTS runs_by_profile ON night_runs(profile_id, ended_at DESC)");
             if (schemaVersion > 0 && schemaVersion < 3) {
                 connection.setAutoCommit(false);
@@ -118,17 +120,18 @@ public final class Database {
                 } catch (SQLException error) { connection.rollback(); throw error; }
                 finally { connection.setAutoCommit(true); }
             }
-            // Legacy completion tables, if present, are left intact but no longer restrict play.
+            // Legacy completion tables, if present, are left intact but no longer restrict play. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
             sql.execute("PRAGMA user_version=5");
         }
     }
 
-    // Each night_runs row is a RunRecord linked to profiles.id through profile_id.
-    // The table argument is an internal schema name, never supplied by a player.
+    // Each night_runs row is a RunRecord linked to profiles.id through profile_id. | Reviewer (42-page edition): [p. 11: save files and schema](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-11); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
+    // The table argument is an internal schema name, never supplied by a player. | Reviewer (42-page edition): [p. 11: save files and schema](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-11); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
     /*
      * Return the internal CREATE TABLE statement with UUID primary key, profile foreign key, range
      * checks and all six allowed Outcome names. The formatted table name is a fixed internal
      * migration identifier, not player input.
+     * Reviewer (42-page edition): [p. 12: save and retry](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-12); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
      */
     private static String runsTable(String table) {
         return """
@@ -145,17 +148,18 @@ public final class Database {
                     """.formatted(table);
     }
 
-    // Each operation opens/closes its own connection. SQLite needs foreign keys enabled per connection.
+    // Each operation opens/closes its own connection. SQLite needs foreign keys enabled per connection. | Reviewer (42-page edition): [p. 11: save files and schema](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-11); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
     /*
      * Open one JDBC SQLite connection; enable foreign_keys and a five-second busy timeout for that
      * connection. If configuration fails, close before rethrowing. Callers close the connection with
      * try-with-resources.
+     * Reviewer (42-page edition): [p. 11: save files and schema](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-11); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
      */
     private Connection connect() throws SQLException {
         Connection connection = DriverManager.getConnection(url);
         try (Statement statement = connection.createStatement()) {
             statement.execute("PRAGMA foreign_keys=ON");
-            // Wait up to five seconds for a lock instead of immediately failing a busy write.
+            // Wait up to five seconds for a lock instead of immediately failing a busy write. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
             statement.execute("PRAGMA busy_timeout=5000");
         } catch (SQLException error) {
             connection.close();
@@ -164,12 +168,13 @@ public final class Database {
         return connection;
     }
 
-    // Select or create the local profile, then ensure it has a default progress row.
-    // SQL placeholders bind values separately from SQL syntax, including names with quotes.
+    // Select or create the local profile, then ensure it has a default progress row. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
+    // SQL placeholders bind values separately from SQL syntax, including names with quotes. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
     /*
      * Bind the name/time into INSERT ... ON CONFLICT(name) DO NOTHING, select the case-insensitive
      * profile ID, and ensure a default progress row exists. Return the relational ID; player names
      * never become executable SQL syntax.
+     * Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
      */
     private long profile(Connection connection, String name) throws SQLException {
         try (PreparedStatement insert = connection.prepareStatement("INSERT INTO profiles(name,created_at) VALUES(?,?) ON CONFLICT(name) DO NOTHING")) {
@@ -193,12 +198,13 @@ public final class Database {
         return id;
     }
 
-    // Unlock fields come from progress; attempt/completion counts are calculated from night_runs.
-    // Loading a name can create its profile if this is the first time it is used.
+    // Unlock fields come from progress; attempt/completion counts are calculated from night_runs. | Reviewer (42-page edition): [p. 11: save files and schema](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-11); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
+    // Loading a name can create its profile if this is the first time it is used. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
     /*
      * Open a connection, select/create the profile, and read next_night/highest_completed plus COUNT
      * subqueries for all and normally completed runs. Return one Progress value. This read may
      * create a new profile/progress row.
+     * Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
      */
     public Progress loadProgress(String name) throws SQLException {
         try (Connection connection = connect()) {
@@ -220,20 +226,21 @@ public final class Database {
         }
     }
 
-    // Atomically save an attempt and its unlock update. The separate text report is not in this transaction.
+    // Atomically save an attempt and its unlock update. The separate text report is not in this transaction. | Reviewer (42-page edition): [p. 12: save and retry](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-12); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
     /*
      * Get/create the profile, then disable auto-commit. Insert the stable run UUID with ON
      * CONFLICT(id) DO NOTHING. Only a newly inserted COMPLETED result updates progress using MAX and
      * a five-night cap. Commit attempt plus unlock update together; rollback on SQLException, close
      * connection, then reload Progress. The earlier profile setup and later text append are outside
      * this transaction.
+     * Reviewer (42-page edition): [p. 12: save and retry](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-12); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
      */
     public Progress saveRun(String name, RunRecord run) throws SQLException {
         try (Connection connection = connect()) {
             long profileId = profile(connection, name);
             connection.setAutoCommit(false);
             try {
-                // A UUID primary key makes retries idempotent: the same run is inserted at most once.
+                // A UUID primary key makes retries idempotent: the same run is inserted at most once. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
                 int inserted;
                 try (PreparedStatement insert = connection.prepareStatement("""
                         INSERT INTO night_runs(id,profile_id,night,elapsed_seconds,power_remaining,outcome,started_at,ended_at)
@@ -249,9 +256,9 @@ public final class Database {
                     insert.setString(8, run.endedAt().toString());
                     inserted = insert.executeUpdate();
                 }
-                // Only normal shift survival advances progress. MINIGAME_COMPLETED is recorded
-                // as an attempt but deliberately does not unlock the next night.
-                // MAX preserves unlocks on earlier-night replays.
+                // Only normal shift survival advances progress. MINIGAME_COMPLETED is recorded | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
+                // as an attempt but deliberately does not unlock the next night. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
+                // MAX preserves unlocks on earlier-night replays. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
                 if (inserted > 0 && run.outcome() == Outcome.COMPLETED) {
                     try (PreparedStatement update = connection.prepareStatement("""
                             UPDATE progress SET highest_completed=MAX(highest_completed,?),
@@ -264,7 +271,7 @@ public final class Database {
                         update.executeUpdate();
                     }
                 }
-                // Both attempt and progress changes become permanent together.
+                // Both attempt and progress changes become permanent together. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
                 connection.commit();
             } catch (SQLException error) {
                 connection.rollback();
@@ -274,11 +281,12 @@ public final class Database {
         return loadProgress(name);
     }
 
-    // Return the newest 200 attempts for this player; older rows remain stored in SQLite.
+    // Return the newest 200 attempts for this player; older rows remain stored in SQLite. | Reviewer (42-page edition): [p. 11: save files and schema](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-11); [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
     /*
      * Bind this profile ID into a SELECT ordered by ended_at DESC LIMIT 200. Reconstruct typed
      * RunRecord/Outcome/Instant values and return an unmodifiable list. Older rows stay stored and
      * still contribute to progress counts.
+     * Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
      */
     public List<RunRecord> loadRuns(String name) throws SQLException {
         List<RunRecord> runs = new ArrayList<>();
@@ -288,7 +296,7 @@ public final class Database {
                 query.setLong(1, id);
                 try (ResultSet row = query.executeQuery()) {
                     while (row.next()) {
-                        // Convert SQL columns back into the game's immutable result representation.
+                        // Convert SQL columns back into the game's immutable result representation. | Reviewer (42-page edition): [p. 32: Database](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-32).
                         runs.add(new RunRecord(row.getString("id"), row.getInt("night"), row.getDouble("elapsed_seconds"),
                                 row.getDouble("power_remaining"), Outcome.valueOf(row.getString("outcome")),
                                 Instant.parse(row.getString("started_at")), Instant.parse(row.getString("ended_at"))));

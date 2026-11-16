@@ -2,7 +2,7 @@ package com.gudos.game;
 
 import java.time.Instant;
 
-/** Immutable result of one ended attempt. Database links it to a profile when saving. */
+/** Immutable result of one ended attempt. Database links it to a profile when saving. Reviewer (42-page edition): [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26). */
 /*
  * RunRecord
  *
@@ -19,15 +19,17 @@ import java.time.Instant;
  *
  * Summary: The record is the receipt for an attempt, not a resumable checkpoint. Its UUID
  * identifies the attempt independently of the player profile.
+ * Reviewer (42-page edition): [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
  */
 public record RunRecord(String id, int night, double elapsedSeconds, double powerRemaining,
                         Outcome outcome, Instant startedAt, Instant endedAt) {
     /*
      * Round active elapsed seconds to the nearest whole second and format minutes:seconds. A paused
      * 18-second attempt displays 00:18 even if more real wall time passed.
+     * Reviewer (42-page edition): [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
      */
     public String durationLabel() {
-        // Display actual active play time as minutes:seconds, not the fictional in-game clock.
+        // Display actual active play time as minutes:seconds, not the fictional in-game clock. | Reviewer (42-page edition): [p. 26: RunRecord](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-26).
         int seconds = (int) Math.round(elapsedSeconds);
         return "%02d:%02d".formatted(seconds / 60, seconds % 60);
     }

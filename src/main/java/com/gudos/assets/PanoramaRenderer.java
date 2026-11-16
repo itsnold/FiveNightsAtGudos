@@ -8,6 +8,7 @@ import java.awt.image.DataBufferInt;
  * atan maps horizontal viewing rays; cos shortens their vertical source span.
  * The image bends at the screen edges while yaw reveals either side of the room.
  * Only the room is projected: HUD/text never pass through this transformation.
+ * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 28: PanoramaRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
  */
 /*
  * PanoramaRenderer
@@ -29,12 +30,13 @@ import java.awt.image.DataBufferInt;
  *
  * Summary: This is a Java2D image projection, not a 3D world or a plain sliding crop. Only
  * the room is transformed; HUD text stays flat.
+ * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 28: PanoramaRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
  */
 public final class PanoramaRenderer {
     public static final int WIDTH = 854;
     public static final int HEIGHT = 480;
     private static final double HALF_FOV = Math.toRadians(40);
-    // Reuse this renderer's output and lookup arrays instead of allocating a frame on every tick.
+    // Reuse this renderer's output and lookup arrays instead of allocating a frame on every tick. | Reviewer (42-page edition): [p. 28: PanoramaRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
     private final BufferedImage output = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
     private final int[] pixels = ((DataBufferInt) output.getRaster().getDataBuffer()).getData();
     private final double[] columnOffsets = new double[WIDTH];
@@ -48,11 +50,13 @@ public final class PanoramaRenderer {
     /**
      * Source pixel displayed at a projected output position after render(). The paper's hitbox
      * lives in the source image, so this reverse lookup keeps clicks aligned during camera sweeps.
+     * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 28: PanoramaRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
      */
     /*
      * For a valid projected coordinate after render, return the source image column and row used for
      * that output pixel. Return null if there is no prepared source or the point is outside 854x480.
      * This keeps the CAM 04 paper hitbox attached to the moving image.
+     * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 28: PanoramaRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
      */
     public java.awt.Point sourcePoint(int x, int y) {
         if (lastSource == null || x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return null;
@@ -64,16 +68,17 @@ public final class PanoramaRenderer {
      * are unchanged; prepare new lookup data when source identity changes. Compute columns for
      * current yaw, sample the source into the shared output pixel array, remember yaw and return the
      * same mutable output image.
+     * Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 28: PanoramaRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
      */
     public BufferedImage render(BufferedImage source, double pan) {
         if (source == null || !Double.isFinite(pan)) throw new IllegalArgumentException("Invalid panorama");
-        // Quantize the view to 2049 positions; unchanged source/view pairs can reuse the last output.
+        // Quantize the view to 2049 positions; unchanged source/view pairs can reuse the last output. | Reviewer (42-page edition): [p. 28: PanoramaRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
         int yaw = (int) Math.round(Math.max(0, Math.min(1, pan)) * 2048);
         if (source == lastSource && yaw == lastYaw) return output;
         if (source != lastSource) prepare(source);
         double center = span / 2 + (source.getWidth() - span) * (yaw / 2048.0);
         for (int x = 0; x < WIDTH; x++) sourceColumns[x] = Math.max(0, Math.min(source.getWidth() - 1, (int) (center + columnOffsets[x])));
-        // Each output pixel samples a precomputed source row and the current view's source column.
+        // Each output pixel samples a precomputed source row and the current view's source column. | Reviewer (42-page edition): [p. 28: PanoramaRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
         for (int y = 0, index = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++, index++) pixels[index] = sourcePixels[sourceRows[index] + sourceColumns[x]];
         }
@@ -81,12 +86,13 @@ public final class PanoramaRenderer {
         return output;
     }
 
-    // Precompute the curved projection whenever the source image changes.
-    // Horizontal rays use atan; cos changes the vertical span toward the sides of the view.
+    // Precompute the curved projection whenever the source image changes. | Reviewer (42-page edition): [p. 10: input and projection](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-10); [p. 28: PanoramaRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
+    // Horizontal rays use atan; cos changes the vertical span toward the sides of the view. | Reviewer (42-page edition): [p. 28: PanoramaRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
     /*
      * Cache source pixels and construct curved sampling lookups for this source image. atan converts
      * screen column to ray angle; cos varies vertical span. Clamp every sample into the source
      * bounds. This work is reused until the source image changes.
+     * Reviewer (42-page edition): [p. 28: PanoramaRenderer](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-28).
      */
     private void prepare(BufferedImage source) {
         lastSource = source;

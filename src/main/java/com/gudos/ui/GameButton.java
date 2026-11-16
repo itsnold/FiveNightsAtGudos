@@ -3,7 +3,7 @@ package com.gudos.ui;
 import javax.swing.*;
 import java.awt.*;
 
-/** A normal Swing button with custom painting and a caller-supplied action. */
+/** A normal Swing button with custom painting and a caller-supplied action. Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22). */
 /*
  * GameButton
  *
@@ -20,12 +20,14 @@ import java.awt.*;
  *
  * Summary: A label is not the implementation. Follow the callback passed into the GameButton
  * constructor to find the actual feature.
+ * Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
  */
 public final class GameButton extends JButton {
     /*
      * Style
      *
      * Named button appearances; input behavior remains in JButton and the supplied callback.
+     * Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
      */
     public enum Style { PRIMARY, SECONDARY, QUIET, CAMERA, TEXT, MONITOR, LIGHT }
     private final Style style;
@@ -34,6 +36,7 @@ public final class GameButton extends JButton {
      * Initialize a real JButton, configure its font/style/accessibility/cursor/transparent painting,
      * and install one ActionListener that invokes the supplied Runnable. This retains Swing
      * enabled/selected/input semantics while custom paintComponent supplies appearance.
+     * Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
      */
     public GameButton(String text, Style style, Runnable action) {
         super(text);
@@ -47,16 +50,17 @@ public final class GameButton extends JButton {
         setOpaque(false);
         setRolloverEnabled(true);
         getAccessibleContext().setAccessibleName(text);
-        // Swing delivers the click event; the callback decides which game/navigation action to request.
+        // Swing delivers the click event; the callback decides which game/navigation action to request. | Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
         addActionListener(event -> action.run());
     }
 
-    // Style selects the appearance; the inherited button model still owns pressed/selected states.
+    // Style selects the appearance; the inherited button model still owns pressed/selected states. | Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
     /*
      * Read the inherited Swing model enabled/hover/selected/pressed states, then draw the chosen
      * style. Monitor is a chevron tab, light is a hold indicator, camera is a two-line label, and
      * normal/text buttons use measured clipping/selection arrows. Copy/dispose Graphics2D and leave
      * click delivery to JButton; painting never starts a night or changes game rules.
+     * Reviewer (42-page edition): [p. 22: GameButton](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-22).
      */
     @Override protected void paintComponent(Graphics graphics) {
         Graphics2D g = (Graphics2D) graphics.create();

@@ -5,7 +5,7 @@ import com.gudos.game.GameSession;
 
 import java.awt.*;
 
-/** Shows the same session's paused state; Application performs resume or abandoned-shift saving. */
+/** Shows the same session's paused state; Application performs resume or abandoned-shift saving. Reviewer (42-page edition): [p. 24: PausePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24). */
 /*
  * PausePanel
  *
@@ -21,6 +21,7 @@ import java.awt.*;
  *
  * Summary: Clock, drain, encounter and camera sweep stop. Resuming preserves memory; closing
  * the app does not create a checkpoint.
+ * Reviewer (42-page edition): [p. 24: PausePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
  */
 public final class PausePanel extends BackdropPanel {
     private final GameSession session;
@@ -28,6 +29,7 @@ public final class PausePanel extends BackdropPanel {
     /*
      * Retain the existing GameSession for display and install Resume/Escape -> resumeShift plus
      * Return to Menu -> leaveShift. This screen does not create a new attempt.
+     * Reviewer (42-page edition): [p. 24: PausePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
      */
     public PausePanel(AssetManager assets, Navigation navigation, GameSession session) {
         super(assets);
@@ -40,6 +42,7 @@ public final class PausePanel extends BackdropPanel {
     /*
      * Draw the frozen session night/precise clock and explain paused/abandoned behavior. Resume and
      * Return to Menu callbacks were installed by the constructor.
+     * Reviewer (42-page edition): [p. 24: PausePanel](https://github.com/itsnold/FiveNightsAtGudos/blob/86b8cdac1d67c3fd619cb33a56097e1b792164ad/docs/defense/Reviewer_Pages.md#page-24).
      */
     @Override protected void render(Graphics2D g) {
         backdrop(g);
